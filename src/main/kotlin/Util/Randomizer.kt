@@ -1,4 +1,11 @@
+package Util
+
 object Randomizer {
+
+    fun getRandomIndex(length: Int): Int {
+        return (0 until length).random()
+    }
+
     fun getRandomPair(length: Int): Pair<Int, Int> {
         val first = (0 until length).random()
         val offset = (0 until length).random()

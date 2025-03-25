@@ -1,3 +1,5 @@
+package Util
+
 object Timer {
     class TimeResult(val totalTime: Long, val averageTime: Long, val executions: Int){
         override fun toString(): String {
