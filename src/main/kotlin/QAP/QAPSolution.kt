@@ -4,21 +4,12 @@ class QAPSolution(val instance: QAPInstance, val solution: IntArray) {
     val solutionCost: Int
 
     init {
-        this.solutionCost = calculateSolutionCost(solution)
-    }
-
-    fun calculateSolutionCost(solution: IntArray): Int {
-        var cost = 0
-        for (i in 0 until instance.instanceSize) {
-            for (j in 0 until instance.instanceSize) {
-                cost += instance.getFlow(i, j) * instance.getDistance(solution[i], solution[j])
-            }
-        }
-        return cost
+        // TODO Consider changing this so that there is a possiblity of using deltas instead of recalculating whole cost
+        this.solutionCost = QAPSolutionManager.calculateSolutionCost(instance, solution)
     }
 
     fun describe() {
         println("Solution: " + solution.joinToString(" "))
-        println("Solution cost: $solutionCost")
+        println("Solution cost: $solutionCost \n")
     }
 }

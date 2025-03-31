@@ -35,6 +35,7 @@ class QAPInstance {
         for (i in 0 until instanceSize) {
             println(distances[i].joinToString(" "))
         }
+        println("")
     }
 
     fun verifyInstance() {
