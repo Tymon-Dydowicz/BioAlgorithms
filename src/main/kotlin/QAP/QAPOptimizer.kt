@@ -31,7 +31,7 @@ object QAPOptimizer {
         return QAPSolution(instance, solution.toIntArray())
     }
 
-    fun performRandomWalk(instance: QAPInstance, steps: Int, time: Long): OptimizationResult {
+    fun performRandomWalk(instance: QAPInstance, time: Long): OptimizationResult {
         val result = OptimizationResult("RandomWalk")
 
         var currentSolution = generateRandomSolution(instance)
@@ -43,7 +43,7 @@ object QAPOptimizer {
         result.addStep(bestCost)
         result.increaseEvaluatedSolutions(1)
 
-        for (i in 0 until steps) {
+        while (System.currentTimeMillis() < endTime) {
             val neighoorhood = QAPNeighboorManager.generateNeighboorhood(currentSolution)
             val newSolution = neighoorhood.random().second
             val newCost = newSolution.solutionCost
@@ -55,10 +55,6 @@ object QAPOptimizer {
                 bestSolution = newSolution
                 bestCost = newCost
                 improvementTimer = System.currentTimeMillis()
-            }
-
-            if (System.currentTimeMillis() > endTime) {
-                break
             }
         }
 
@@ -102,19 +98,39 @@ object QAPOptimizer {
     }
 
     fun performRandomLocalSearchSteepest(instance: QAPInstance, time: Long): OptimizationResult {
-        return performLocalSearchImpl(instance, time, QAPOptimizer::generateRandomSolution, QAPNeighboorManager::steepestNeighboorSelection)
+        return performLocalSearchImpl(
+            instance,
+            time,
+            QAPOptimizer::generateRandomSolution,
+            QAPNeighboorManager::steepestNeighboorSelection
+        )
     }
 
     fun performHeuristicLocalSearchSteepest(instance: QAPInstance, time: Long): OptimizationResult {
-        return performLocalSearchImpl(instance, time, QAPOptimizer::generateHeuristicSolution, QAPNeighboorManager::steepestNeighboorSelection)
+        return performLocalSearchImpl(
+            instance,
+            time,
+            QAPOptimizer::generateHeuristicSolution,
+            QAPNeighboorManager::steepestNeighboorSelection
+        )
     }
 
     fun performRandomLocalSearchGreedy(instance: QAPInstance, time: Long): OptimizationResult {
-        return performLocalSearchImpl(instance, time, QAPOptimizer::generateRandomSolution, QAPNeighboorManager::greedyNeighboorSelection)
+        return performLocalSearchImpl(
+            instance,
+            time,
+            QAPOptimizer::generateRandomSolution,
+            QAPNeighboorManager::greedyNeighboorSelection
+        )
     }
 
     fun performHeuristicLocalSearchGreedy(instance: QAPInstance, time: Long): OptimizationResult {
-        return performLocalSearchImpl(instance, time, QAPOptimizer::generateHeuristicSolution, QAPNeighboorManager::greedyNeighboorSelection)
+        return performLocalSearchImpl(
+            instance,
+            time,
+            QAPOptimizer::generateHeuristicSolution,
+            QAPNeighboorManager::greedyNeighboorSelection
+        )
     }
 
     private fun performLocalSearchImpl(instance: QAPInstance, time: Long, startMethod: (QAPInstance) -> QAPSolution, selectionMethod: (QAPSolution) -> Pair<Int, QAPSolution>): OptimizationResult {
@@ -149,19 +165,43 @@ object QAPOptimizer {
     }
 
     fun performHeuristicMultiLSGreedy(instance: QAPInstance, starts: Int, time: Long): List<OptimizationResult> {
-        return performMultiLSImpl(instance, starts, time, QAPOptimizer::generateHeuristicSolution, QAPNeighboorManager::greedyNeighboorSelection)
+        return performMultiLSImpl(
+            instance,
+            starts,
+            time,
+            QAPOptimizer::generateHeuristicSolution,
+            QAPNeighboorManager::greedyNeighboorSelection
+        )
     }
 
     fun performRandomMultiLSGreedy(instance: QAPInstance, starts: Int, time: Long): List<OptimizationResult> {
-        return performMultiLSImpl(instance, starts, time, QAPOptimizer::generateRandomSolution, QAPNeighboorManager::greedyNeighboorSelection)
+        return performMultiLSImpl(
+            instance,
+            starts,
+            time,
+            QAPOptimizer::generateRandomSolution,
+            QAPNeighboorManager::greedyNeighboorSelection
+        )
     }
 
     fun performHeuristicMultiLSSteepest(instance: QAPInstance, starts: Int, time: Long): List<OptimizationResult> {
-        return performMultiLSImpl(instance, starts, time, QAPOptimizer::generateHeuristicSolution, QAPNeighboorManager::steepestNeighboorSelection)
+        return performMultiLSImpl(
+            instance,
+            starts,
+            time,
+            QAPOptimizer::generateHeuristicSolution,
+            QAPNeighboorManager::steepestNeighboorSelection
+        )
     }
 
     fun performRandomMultiLSSteepest(instance: QAPInstance, starts: Int, time: Long): List<OptimizationResult> {
-        return performMultiLSImpl(instance, starts, time, QAPOptimizer::generateRandomSolution, QAPNeighboorManager::steepestNeighboorSelection)
+        return performMultiLSImpl(
+            instance,
+            starts,
+            time,
+            QAPOptimizer::generateRandomSolution,
+            QAPNeighboorManager::steepestNeighboorSelection
+        )
     }
 
     private fun performMultiLSImpl(instance: QAPInstance, starts: Int, time: Long, startMethod: (QAPInstance) -> QAPSolution, selectionMethod: (QAPSolution) -> Pair<Int, QAPSolution>): List<OptimizationResult> {

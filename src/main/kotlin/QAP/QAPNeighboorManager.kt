@@ -1,6 +1,83 @@
 package QAP
 
 object QAPNeighboorManager {
+    enum class SelectionType {
+        GREEDY,
+        STEEPEST,
+    }
+
+    enum class EvaluationType {
+        FULL,
+        DELTA,
+    }
+
+    fun getNextSolution(solution:QAPSolution, selectionType: SelectionType, evaluationType: EvaluationType): Pair<Int, QAPSolution> {
+        var evaluations: Int = 0
+        when (selectionType) {
+            SelectionType.GREEDY -> {
+                when (evaluationType) {
+                    EvaluationType.FULL -> {
+                        val moves = generateMoves(solution)
+                        for (move in moves) {
+                            val nextSolution = solution.swapElements(move.first, move.second)
+                            evaluations++
+                            if (nextSolution.solutionCost < solution.solutionCost) {
+                                return Pair(evaluations, nextSolution)
+                            }
+                        }
+
+                        //TODO maybe null
+                        return Pair(evaluations, solution)
+                    }
+                    EvaluationType.DELTA -> {
+                        //TODO Implement
+                        val moves = generateMoves(solution)
+                        for (move in moves) {
+                            val delta = calculateDelta(solution, move.first, move.second)
+                            evaluations++
+                            if (delta < 0) {
+                                val nextSolution = solution.swapElements(move.first, move.second)
+                                return Pair(evaluations, nextSolution)
+                            }
+                        }
+
+                        return Pair(evaluations, solution)
+                    }
+                }
+            }
+            SelectionType.STEEPEST -> {
+                when (evaluationType) {
+                    EvaluationType.FULL -> {
+                        val moves = generateMoves(solution)
+                        var bestSolution = solution
+                        for (move in moves) {
+                            val nextSolution = solution.swapElements(move.first, move.second)
+                            evaluations++
+                            if (nextSolution.solutionCost < bestSolution.solutionCost) {
+                                bestSolution = nextSolution
+                            }
+                        }
+                        return Pair(evaluations, bestSolution)
+                    }
+                    EvaluationType.DELTA -> {
+                        //TODO Implement
+                        val moves = generateMoves(solution)
+                        val movesWithDeltas = mutableListOf<Pair<Int, Pair<Int, Int>>>()
+                        for (move in moves) {
+                            val delta = calculateDelta(solution, move.first, move.second)
+                            evaluations++
+                            movesWithDeltas.add(Pair(delta, move))
+                        }
+                        val bestMove = movesWithDeltas.minByOrNull { it.first }!!.second
+                        val nextSolution = solution.swapElements(bestMove.first, bestMove.second)
+
+                        return Pair(evaluations, nextSolution)
+                    }
+                }
+            }
+        }
+    }
+
     fun generateNeighboorhood(solution: QAPSolution): List<Pair<Int, QAPSolution>> {
         //TODO Rethink whether to use whole solution representation or just keep moves with deltas
         val neighboorhood = mutableListOf<Pair<Int, QAPSolution>>()
@@ -30,34 +107,41 @@ object QAPNeighboorManager {
     }
 
     fun calculateDelta(solution: QAPSolution, i: Int, j: Int): Int {
-        val oldCost = solution.solutionCost
-        val newSolution = solution.solution.copyOf()
-        newSolution[i] = solution.solution[j]
-        newSolution[j] = solution.solution[i]
-        val newSolutionInstance = QAPSolution(solution.instance, newSolution)
-        return newSolutionInstance.solutionCost - oldCost
+        val distances = solution.instance.distances
+        val flows = solution.instance.flows
+        val permutation = solution.solution
 
-    }
+        var delta = 0
 
-    fun greedyNeighboorSelection(solution:QAPSolution): Pair<Int, QAPSolution> {
-        val neighboorhood = generateNeighboorhood(solution).shuffled()
-        var evaluations = 0
+        for (k in 0 until permutation.size) {
+            if (k != i && k != j) {
+                // Change in cost for interaction between facilities i and k
+                delta += flows[i][k] * (distances[permutation[j]][permutation[k]] - distances[permutation[i]][permutation[k]])
 
-        for (neighboor in neighboorhood) {
-            evaluations++
-            if (neighboor.second.solutionCost < solution.solutionCost) {
-                return Pair(evaluations, neighboor.second)
+                // Change in cost for interaction between facilities j and k
+                delta += flows[j][k] * (distances[permutation[i]][permutation[k]] - distances[permutation[j]][permutation[k]])
+
+                // Change in cost for interaction between facilities k and i
+                delta += flows[k][i] * (distances[permutation[k]][permutation[j]] - distances[permutation[k]][permutation[i]])
+
+                // Change in cost for interaction between facilities k and j
+                delta += flows[k][j] * (distances[permutation[k]][permutation[i]] - distances[permutation[k]][permutation[j]])
             }
         }
 
-        return Pair(evaluations, solution)
+        // Change in cost for interaction between facilities i and j
+        delta += flows[i][j] * (distances[permutation[j]][permutation[i]] - distances[permutation[i]][permutation[j]])
+        delta += flows[j][i] * (distances[permutation[i]][permutation[j]] - distances[permutation[j]][permutation[i]])
+
+        return delta
+    }
+
+    fun greedyNeighboorSelection(solution:QAPSolution): Pair<Int, QAPSolution> {
+        return getNextSolution(solution, SelectionType.GREEDY, EvaluationType.DELTA)
     }
 
     fun steepestNeighboorSelection(solution:QAPSolution): Pair<Int, QAPSolution> {
-        val neighboorhood = generateNeighboorhood(solution)
-        var bestNeighboor = neighboorhood.minByOrNull { it.second.solutionCost }!!.second
-
-        return Pair(neighboorhood.size, bestNeighboor)
+        return getNextSolution(solution, SelectionType.STEEPEST, EvaluationType.DELTA)
     }
 
     fun getNeighboorhoodSize(solution: QAPSolution): Int {

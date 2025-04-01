@@ -4,6 +4,7 @@ class QAPInstance {
     val instanceSize: Int
     val distances: Array<IntArray>
     val flows: Array<IntArray>
+    var optimalSolution: QAPSolution? = null
 
     constructor(instanceSize: Int, flows: Array<IntArray>, distances: Array<IntArray>) {
         this.instanceSize = instanceSize
@@ -19,10 +20,6 @@ class QAPInstance {
 
     fun getFlow(i: Int, j: Int): Int {
         return flows[i][j]
-    }
-
-    fun getFlowWeightedDistance(i: Int, j: Int): Int {
-        return getFlow(i, j) * getDistance(i, j)
     }
 
     fun describe() {
