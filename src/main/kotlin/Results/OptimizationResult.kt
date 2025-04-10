@@ -1,13 +1,15 @@
-package Util
+package Results
 
 import QAP.QAPSolution
 import java.io.File
 
 class OptimizationResult(val name: String) {
     var runtime: Long = 0
+//    var solutions: MutableList<QAPSolution> = mutableListOf()
     var solutionSteps: MutableList<Int> = mutableListOf()
     var posSteps: Int = 0
     var negSteps: Int = 0
+    var initialSolution: QAPSolution? = null
     var bestSolution: QAPSolution? = null
     var timeSinceLastImprovement: Long = 0
     var optimum: Int = 0
@@ -20,6 +22,9 @@ class OptimizationResult(val name: String) {
                 "Best Solution cost: ${bestSolution!!.solutionCost} \n")
 //                "Cost changes $solutionSteps \n")
     }
+//    fun addSolution(solution: QAPSolution) {
+//        solutions.add(solution)
+//    }
 
     fun addStep(cost: Int) {
         var lastCost = Int.MAX_VALUE

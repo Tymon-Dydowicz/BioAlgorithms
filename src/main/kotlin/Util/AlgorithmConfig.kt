@@ -1,6 +1,7 @@
 package Util
 
 import QAP.QAPInstance
+import Results.OptimizationResult
 
 data class AlgorithmConfig(
     val name: String,

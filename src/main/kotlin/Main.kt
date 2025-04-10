@@ -1,21 +1,58 @@
 import QAP.QAPInstance
 import QAP.QAPOptimizer
 import QAP.QAPSolution
+import Results.*
 import Util.*
-import java.lang.Thread.sleep
+
+typealias OptimizationFunction = (QAPInstance, Int, Int) -> OptimizationResult
+typealias MultiStartOpimizationFunction = (QAPInstance, Int, Int) -> List<OptimizationResult>
 
 fun main(args: Array<String>) {
     val dataLocation = "data/qapdata/"
-    val instanceName = "tai12a.dat"
-    val repeats = 1
 
+    val instanceName = "nug28.dat"
     val instanceNameClean = instanceName.split(".")[0]
-
     val instance = DataLoader.loadUnformattedInstance(dataLocation + instanceName)
     instance.describe()
     OptimalSolutions.setOptimumForInstance(instance, instanceName)
 
-    evaluateAlgorithms(instance, instanceNameClean, repeats)
+    val repeats = 20
+
+    val instances = listOf(
+        "tai12a.dat",
+//        "els19.dat",
+//        "rou20.dat",
+//        "bur26a.dat",
+//        "nug28.dat",
+//        "kra32.dat",
+//        "esc64a.dat",
+//        "lipa90b.dat",
+    )
+
+
+//    for (instanceName in instances) {
+//        val instanceNameClean = instanceName.split(".")[0]
+//
+//        val instance = DataLoader.loadUnformattedInstance(dataLocation + instanceName)
+//        instance.describe()
+//        OptimalSolutions.setOptimumForInstance(instance, instanceName)
+//
+//        evaluateAlgorithms(instance, instanceNameClean, repeats)
+//    }
+
+
+    val repeatsUntil = 500
+    val algorithmRestarts = "heurSMSLS"
+//    analyzeRestarts(instance, instanceNameClean, algorithmRestarts, repeatsUntil)
+
+    val startsTrend = 300
+    val algorithmTrend = "heurGMSLS"
+//    analyzeTrend(instance, instanceNameClean, algorithmTrend, startsTrend)
+
+    val startsSimilarity = 300
+    val algorithmSimilarity = "heurGMSLS"
+    analyzeSimilarity(instance, instanceNameClean, algorithmSimilarity, startsSimilarity)
+
 }
 
 fun QAPExperiment(dataLocation: String, instanceName: String, repeats: Int) {
@@ -161,6 +198,91 @@ fun QAPExperiment(dataLocation: String, instanceName: String, repeats: Int) {
     avgRandGMSLSResult.exportToCSV("results/" + instanceNameClean + "_randGMSLS_avg_results.csv")
 }
 
+fun analyzeSimilarity(
+    instance: QAPInstance,
+    instanceNameClean: String,
+    algorithm: String,
+    starts: Int,
+) {
+    val results: List<OptimizationResult>
+
+    when (algorithm) {
+        "randGMSLS" -> {
+            results = QAPOptimizer.performRandomMultiLSGreedy(instance, starts, 5000)
+        }
+        "randSMSLS" -> {
+            results = QAPOptimizer.performRandomMultiLSSteepest(instance, starts, 5000)
+        }
+        "heurGMSLS" -> {
+            results = QAPOptimizer.performHeuristicMultiLSGreedy(instance, starts, 5000)
+        }
+        "heurSMSLS" -> {
+            results = QAPOptimizer.performHeuristicMultiLSSteepest(instance, starts, 5000)
+        }
+        else -> throw IllegalArgumentException("Unknown algorithm: $algorithm")
+    }
+    val similarityAnalysisReport = SimilarityAnalysisReport(instanceNameClean, instance.optimalSolution!!, results)
+
+    similarityAnalysisReport.exportToCSV("results/${instanceNameClean}_${algorithm}_similarity_analysis.csv")
+}
+
+fun analyzeTrend(
+    instance: QAPInstance,
+    instanceNameClean: String,
+    algorithm: String,
+    starts: Int,
+) {
+    val trendAnalysisReport = TrendAnalysisReport(instanceNameClean)
+    val results: List<OptimizationResult>
+
+    when (algorithm) {
+        "randGMSLS" -> {
+            results = QAPOptimizer.performRandomMultiLSGreedy(instance, starts, 5000)
+        }
+        "randSMSLS" -> {
+            results = QAPOptimizer.performRandomMultiLSSteepest(instance, starts, 5000)
+        }
+        "heurGMSLS" -> {
+            results = QAPOptimizer.performHeuristicMultiLSGreedy(instance, starts, 5000)
+        }
+        "heurSMSLS" -> {
+            results = QAPOptimizer.performHeuristicMultiLSSteepest(instance, starts, 5000)
+        }
+        else -> throw IllegalArgumentException("Unknown algorithm: $algorithm")
+    }
+    results.forEach { trendAnalysisReport.addStep(it.initialSolution!!, it.bestSolution!!)}
+
+    trendAnalysisReport.exportToCSV("results/${instanceNameClean}_${algorithm}_trend_analysis.csv")
+}
+
+fun analyzeRestarts(
+    instance: QAPInstance,
+    instanceNameClean: String,
+    algorithm: String,
+    starts: Int,
+) {
+    val results: List<OptimizationResult>
+    when (algorithm) {
+        "randGMSLS" -> {
+            results = QAPOptimizer.performRandomMultiLSGreedy(instance, starts, 5000)
+        }
+        "randSMSLS" -> {
+            results = QAPOptimizer.performRandomMultiLSSteepest(instance, starts, 5000)
+        }
+        "heurGMSLS" -> {
+            results = QAPOptimizer.performHeuristicMultiLSGreedy(instance, starts, 5000)
+        }
+        "heurSMSLS" -> {
+            results = QAPOptimizer.performHeuristicMultiLSSteepest(instance, starts, 5000)
+        }
+        else -> throw IllegalArgumentException("Unknown algorithm: $algorithm")
+    }
+
+    val restartsAnalysisReport = RestartsAnalysisReport(instanceNameClean, results)
+
+    restartsAnalysisReport.exportToCsv("results/${instanceNameClean}_${algorithm}_restarts_analysis.csv")
+}
+
 fun evaluateAlgorithms(
     instance: QAPInstance,
     instanceNameClean: String,
@@ -170,12 +292,17 @@ fun evaluateAlgorithms(
         AlgorithmConfig(
             "RW", "Random Walk",
             { inst, maxTime -> QAPOptimizer.performRandomWalk(inst, maxTime) },
-            150
+            3
         ),
         AlgorithmConfig(
             "RS", "Random Search",
             { inst, maxTime -> QAPOptimizer.performRandomSearch(inst, maxTime) },
-            150
+            3
+        ),
+        AlgorithmConfig(
+            "heur", "Heuristic",
+            { inst, maxTime -> QAPOptimizer.performHeurstic(inst, maxTime) },
+            5000
         ),
         AlgorithmConfig(
             "heurGLS", "Heuristic Greedy Local Search",
@@ -263,31 +390,16 @@ fun runMultiStartAlgorithm(
     for (i in 0 until repeats) {
         val multiResults = config.executor(instance, config.startCount, config.maxTime)
         multiResults.forEach { it.setOptimumIn(instance.optimalSolution!!.solutionCost) }
-        val bestSolution = multiResults.maxByOrNull { it.solutionSteps.size }!!
-        results.add(bestSolution)
+        val bestResult = multiResults.minByOrNull { it.bestSolution!!.solutionCost }!!
+        val longestRuntime = multiResults.maxOf { it.runtime }
+        val sumOfEvaluatedSolutions = multiResults.sumOf { it.evaluatedSolutions }
+
+        bestResult.runtime = longestRuntime
+        bestResult.evaluatedSolutions = sumOfEvaluatedSolutions
+        results.add(bestResult)
     }
 
     val avgResult = AvgOptimizationResult.fromResults(config.name, results)
     avgResult.describe()
     avgResult.exportToCSV("results/${instanceNameClean}_${config.name}_avg_results.csv")
-}
-
-fun test() {
-    val length = 100
-    val (first, second) = Randomizer.getRandomPair(length)
-    println("$first $second")
-
-    val array = Array(length) { it }
-    val shuffledArray = Randomizer.randomShuffle(array)
-    println(array.joinToString(" "))
-    println(shuffledArray.joinToString(" "))
-
-    fun testFunction() {
-        val array = Array(length) { it }
-        sleep(100)
-        Randomizer.randomShuffle(array)
-    }
-
-    val timeResult = Timer.calculateExectuionTime(::testFunction, 2.8, 100)
-    println(timeResult)
 }

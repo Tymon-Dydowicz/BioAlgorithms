@@ -26,11 +26,9 @@ object QAPNeighboorManager {
                             }
                         }
 
-                        //TODO maybe null
                         return Pair(evaluations, solution)
                     }
                     EvaluationType.DELTA -> {
-                        //TODO Implement
                         val moves = generateMoves(solution)
                         for (move in moves) {
                             val delta = calculateDelta(solution, move.first, move.second)
@@ -60,7 +58,6 @@ object QAPNeighboorManager {
                         return Pair(evaluations, bestSolution)
                     }
                     EvaluationType.DELTA -> {
-                        //TODO Implement
                         val moves = generateMoves(solution)
                         val movesWithDeltas = mutableListOf<Pair<Int, Pair<Int, Int>>>()
                         for (move in moves) {
@@ -79,7 +76,6 @@ object QAPNeighboorManager {
     }
 
     fun generateNeighboorhood(solution: QAPSolution): List<Pair<Int, QAPSolution>> {
-        //TODO Rethink whether to use whole solution representation or just keep moves with deltas
         val neighboorhood = mutableListOf<Pair<Int, QAPSolution>>()
         for (move in generateMoves(solution)) {
             val delta = calculateDelta(solution, move.first, move.second)

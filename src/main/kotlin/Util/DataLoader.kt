@@ -3,7 +3,6 @@ package Util
 import QAP.QAPInstance
 
 object DataLoader {
-//    TODO Make it readt amount of numbers from the int size not by rows due to different formating
     fun loadArrayFromFile(path: String): QAPInstance {
         val file = java.io.File(path)
         val lines = file.readLines().filter { it.isNotBlank() }

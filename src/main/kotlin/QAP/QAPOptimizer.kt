@@ -1,10 +1,76 @@
 package QAP
 
-import Util.OptimizationResult
+import Results.OptimizationResult
+import Util.Algorithm
+import Util.OptimizationConfig
 import Util.Randomizer
+import java.util.*
 import java.util.concurrent.Executors
 
 object QAPOptimizer {
+    fun performOptimization(config: OptimizationConfig): List<OptimizationResult> {
+        config.executions.add(Date())
+
+        val results: List<OptimizationResult>
+
+        when (config.algorithm) {
+            Algorithm.RANDOM_WALK -> {
+                results = List(config.multiStarts) {
+                    performRandomWalk(config.instance, config.time)
+                }
+            }
+            Algorithm.RANDOM_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performRandomSearch(config.instance, config.time)
+                }
+            }
+            Algorithm.RANDOM_GREEDY_LOCAL_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performRandomLocalSearchGreedy(config.instance, config.time)
+                }
+            }
+            Algorithm.RANDOM_STEEPEST_LOCAL_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performRandomLocalSearchSteepest(config.instance, config.time)
+                }
+            }
+            Algorithm.HEURISTIC_GREEDY_LOCAL_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performHeuristicLocalSearchGreedy(config.instance, config.time)
+                }
+            }
+            Algorithm.HEURISTIC_STEEPEST_LOCAL_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performHeuristicLocalSearchSteepest(config.instance, config.time)
+                }
+            }
+            Algorithm.RANDOM_GREEDY_MS_LOCAL_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performRandomMultiLSGreedy(config.instance, config.multiStarts,config.time).minByOrNull { it.bestSolution!!.solutionCost }!!
+                }
+            }
+            Algorithm.RANDOM_STEEPEST_MS_LOCAL_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performRandomMultiLSSteepest(config.instance, config.multiStarts,config.time).minByOrNull { it.bestSolution!!.solutionCost }!!
+                }
+            }
+            Algorithm.HEURISTIC_GREEDY_MS_LOCAL_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performHeuristicMultiLSGreedy(config.instance, config.multiStarts,config.time).minByOrNull { it.bestSolution!!.solutionCost }!!
+                }
+            }
+            Algorithm.HEURISTIC_STEEPEST_MS_LOCAL_SEARCH -> {
+                results = List(config.multiStarts) {
+                    performHeuristicMultiLSSteepest(config.instance, config.multiStarts,config.time).minByOrNull { it.bestSolution!!.solutionCost }!!
+                }
+            }
+            else -> throw IllegalArgumentException("Unknown algorithm: ${config.algorithm}")
+        }
+
+
+        return results
+    }
+
     fun generateRandomSolution(qap: QAPInstance): QAPSolution {
 
         val locations = Array(qap.instanceSize) { it }
@@ -35,12 +101,14 @@ object QAPOptimizer {
         val result = OptimizationResult("RandomWalk")
 
         var currentSolution = generateRandomSolution(instance)
+        result.initialSolution = currentSolution
+
         var bestSolution = currentSolution
         var bestCost = currentSolution.solutionCost
         val endTime = System.currentTimeMillis() + time
         var improvementTimer = System.currentTimeMillis()
 
-        result.addStep(bestCost)
+        result.addStep(bestSolution.solutionCost)
         result.increaseEvaluatedSolutions(1)
 
         while (System.currentTimeMillis() < endTime) {
@@ -48,7 +116,7 @@ object QAPOptimizer {
             val newSolution = neighoorhood.random().second
             val newCost = newSolution.solutionCost
 
-            result.addStep(newCost)
+            result.addStep(newSolution.solutionCost)
             result.increaseEvaluatedSolutions(1)
 
             if (newCost < bestCost) {
@@ -69,18 +137,19 @@ object QAPOptimizer {
         val result = OptimizationResult("RandomSearch")
 
         var bestSolution = generateRandomSolution(instance)
+
         var bestCost = bestSolution.solutionCost
         val endTime = System.currentTimeMillis() + time
         var improvementTimer = System.currentTimeMillis()
 
-        result.addStep(bestCost)
+        result.addStep(bestSolution.solutionCost)
         result.increaseEvaluatedSolutions(1)
 
         while (System.currentTimeMillis() < endTime) {
             val newSolution = generateRandomSolution(instance)
             val newCost = newSolution.solutionCost
 
-            result.addStep(newCost)
+            result.addStep(newSolution.solutionCost)
             result.increaseEvaluatedSolutions(1)
 
             if (newCost < bestCost) {
@@ -93,6 +162,31 @@ object QAPOptimizer {
         result.setRuntimeIn(System.currentTimeMillis() - endTime + time)
         result.setLastImprovementIn(System.currentTimeMillis() - improvementTimer)
         result.setBestSolutionIn(bestSolution)
+
+        return result
+    }
+
+    fun performHeurstic(instance: QAPInstance, time: Long): OptimizationResult {
+        val result = OptimizationResult("Heuristic")
+
+        var solution = mutableListOf<Int>()
+        var locations = MutableList(instance.instanceSize) { it }
+        val intialFacility = Randomizer.getRandomIndex(instance.instanceSize)
+        val endTime = System.currentTimeMillis() + time
+
+        solution.add(intialFacility)
+        locations.remove(intialFacility)
+
+        while (locations.isNotEmpty()) {
+            val nextFacility = locations.minByOrNull { QAPSolutionManager.calculateAdditionCost(solution, it, instance) }!!
+
+            solution.add(nextFacility)
+            locations.remove(nextFacility)
+        }
+
+        result.setRuntimeIn(System.currentTimeMillis() - endTime + time)
+        result.initialSolution = QAPSolution(instance, solution.toIntArray())
+        result.bestSolution = result.initialSolution
 
         return result
     }
@@ -134,10 +228,10 @@ object QAPOptimizer {
     }
 
     private fun performLocalSearchImpl(instance: QAPInstance, time: Long, startMethod: (QAPInstance) -> QAPSolution, selectionMethod: (QAPSolution) -> Pair<Int, QAPSolution>): OptimizationResult {
-        // TODO add counting of steps and convergence
         val result = OptimizationResult("RandomSearch")
 
         var solution = startMethod(instance)
+        result.initialSolution = solution
         val endTime = System.currentTimeMillis() + time
 
         result.addStep(solution.solutionCost)
@@ -149,7 +243,7 @@ object QAPOptimizer {
 
 
             if (bestNeighboor.solutionCost >= solution.solutionCost) {
-                println("Local minimum found!")
+//                println("Local minimum found!")
                 break
             } else {
                 solution = bestNeighboor

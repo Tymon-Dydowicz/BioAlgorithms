@@ -26,4 +26,16 @@ object Randomizer {
 
         return arrayCopy
     }
+
+    fun testRandomizer(){
+        val length = 100
+
+        val (first, second) = Randomizer.getRandomPair(length)
+        println("$first $second")
+
+        val array = Array(length) { it }
+        val shuffledArray = Randomizer.randomShuffle(array)
+        println(array.joinToString(" "))
+        println(shuffledArray.joinToString(" "))
+    }
 }

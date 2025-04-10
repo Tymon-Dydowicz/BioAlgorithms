@@ -18,4 +18,17 @@ object Timer {
 
         return TimeResult(totalTime, totalTime/counter, counter)
     }
+
+    fun testTimer() {
+        val length = 100
+
+        fun testFunction() {
+            val array = Array(length) { it }
+            Thread.sleep(100)
+            Randomizer.randomShuffle(array)
+        }
+
+        val timeResult = Timer.calculateExectuionTime(::testFunction, 2.8, 100)
+        println(timeResult)
+    }
 }
