@@ -1,74 +1,63 @@
 package QAP
 
 import Results.OptimizationResult
-import Util.Algorithm
+import Enums.AlgorithmType
 import Util.OptimizationConfig
 import Util.Randomizer
 import java.util.*
 import java.util.concurrent.Executors
 
 object QAPOptimizer {
-    fun performOptimization(config: OptimizationConfig): List<OptimizationResult> {
+    fun performOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean): List<OptimizationResult> {
         config.executions.add(Date())
 
-        val results: List<OptimizationResult>
+        return when (config.algorithmType) {
+            AlgorithmType.RANDOM_WALK -> List(config.algorithmRuns) {
+                performRandomWalk(config.instance, config.time)
+            }
 
-        when (config.algorithm) {
-            Algorithm.RANDOM_WALK -> {
-                results = List(config.multiStarts) {
-                    performRandomWalk(config.instance, config.time)
-                }
+            AlgorithmType.RANDOM_SEARCH -> List(config.algorithmRuns) {
+                performRandomSearch(config.instance, config.time)
             }
-            Algorithm.RANDOM_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performRandomSearch(config.instance, config.time)
-                }
+
+            AlgorithmType.RANDOM_GREEDY_LOCAL_SEARCH -> List(config.algorithmRuns) {
+                performRandomLocalSearchGreedy(config.instance, config.time)
             }
-            Algorithm.RANDOM_GREEDY_LOCAL_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performRandomLocalSearchGreedy(config.instance, config.time)
-                }
+
+            AlgorithmType.RANDOM_STEEPEST_LOCAL_SEARCH -> List(config.algorithmRuns) {
+                performRandomLocalSearchSteepest(config.instance, config.time)
             }
-            Algorithm.RANDOM_STEEPEST_LOCAL_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performRandomLocalSearchSteepest(config.instance, config.time)
-                }
+
+            AlgorithmType.HEURISTIC_GREEDY_LOCAL_SEARCH -> List(config.algorithmRuns) {
+                performHeuristicLocalSearchGreedy(config.instance, config.time)
             }
-            Algorithm.HEURISTIC_GREEDY_LOCAL_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performHeuristicLocalSearchGreedy(config.instance, config.time)
-                }
+
+            AlgorithmType.HEURISTIC_STEEPEST_LOCAL_SEARCH -> List(config.algorithmRuns) {
+                performHeuristicLocalSearchSteepest(config.instance, config.time)
             }
-            Algorithm.HEURISTIC_STEEPEST_LOCAL_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performHeuristicLocalSearchSteepest(config.instance, config.time)
-                }
-            }
-            Algorithm.RANDOM_GREEDY_MS_LOCAL_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performRandomMultiLSGreedy(config.instance, config.multiStarts,config.time).minByOrNull { it.bestSolution!!.solutionCost }!!
-                }
-            }
-            Algorithm.RANDOM_STEEPEST_MS_LOCAL_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performRandomMultiLSSteepest(config.instance, config.multiStarts,config.time).minByOrNull { it.bestSolution!!.solutionCost }!!
-                }
-            }
-            Algorithm.HEURISTIC_GREEDY_MS_LOCAL_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performHeuristicMultiLSGreedy(config.instance, config.multiStarts,config.time).minByOrNull { it.bestSolution!!.solutionCost }!!
-                }
-            }
-            Algorithm.HEURISTIC_STEEPEST_MS_LOCAL_SEARCH -> {
-                results = List(config.multiStarts) {
-                    performHeuristicMultiLSSteepest(config.instance, config.multiStarts,config.time).minByOrNull { it.bestSolution!!.solutionCost }!!
-                }
-            }
-            else -> throw IllegalArgumentException("Unknown algorithm: ${config.algorithm}")
+
+            AlgorithmType.RANDOM_GREEDY_MS_LOCAL_SEARCH -> List(config.algorithmRuns) {
+                val results = performRandomMultiLSGreedy(config.instance, config.multiStarts!!, config.time)
+                if (aggregateMultiStarts) results.minByOrNull { it.bestSolution!!.solutionCost }!! else results
+            }.flattenIfNeeded(aggregateMultiStarts)
+
+            AlgorithmType.RANDOM_STEEPEST_MS_LOCAL_SEARCH -> List(config.algorithmRuns) {
+                val results = performRandomMultiLSSteepest(config.instance, config.multiStarts!!, config.time)
+                if (aggregateMultiStarts) results.minByOrNull { it.bestSolution!!.solutionCost }!! else results
+            }.flattenIfNeeded(aggregateMultiStarts)
+
+            AlgorithmType.HEURISTIC_GREEDY_MS_LOCAL_SEARCH -> List(config.algorithmRuns) {
+                val results = performHeuristicMultiLSGreedy(config.instance, config.multiStarts!!, config.time)
+                if (aggregateMultiStarts) results.minByOrNull { it.bestSolution!!.solutionCost }!! else results
+            }.flattenIfNeeded(aggregateMultiStarts)
+
+            AlgorithmType.HEURISTIC_STEEPEST_MS_LOCAL_SEARCH -> List(config.algorithmRuns) {
+                val results = performHeuristicMultiLSSteepest(config.instance, config.multiStarts!!, config.time)
+                if (aggregateMultiStarts) results.minByOrNull { it.bestSolution!!.solutionCost }!! else results
+            }.flattenIfNeeded(aggregateMultiStarts)
+
+            else -> throw IllegalArgumentException("Unknown algorithm: ${config.algorithmType}")
         }
-
-
-        return results
     }
 
     fun generateRandomSolution(qap: QAPInstance): QAPSolution {
@@ -312,6 +301,14 @@ object QAPOptimizer {
             return futures.map { it.get() }
         } finally {
             executor.shutdown()
+        }
+    }
+
+    private fun List<Any>.flattenIfNeeded(flatten: Boolean): List<OptimizationResult> {
+        return if (flatten) {
+            this as List<OptimizationResult>
+        } else {
+            this.flatMap { it as List<OptimizationResult> }
         }
     }
 }

@@ -1,12 +1,14 @@
 package QAP
 
 class QAPInstance {
+    val instanceName: String
     val instanceSize: Int
     val distances: Array<IntArray>
     val flows: Array<IntArray>
     var optimalSolution: QAPSolution? = null
 
-    constructor(instanceSize: Int, flows: Array<IntArray>, distances: Array<IntArray>) {
+    constructor(instanceName: String, instanceSize: Int, flows: Array<IntArray>, distances: Array<IntArray>) {
+        this.instanceName = instanceName
         this.instanceSize = instanceSize
         this.distances = distances
         this.flows = flows

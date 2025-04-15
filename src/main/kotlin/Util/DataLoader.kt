@@ -3,11 +3,12 @@ package Util
 import QAP.QAPInstance
 
 object DataLoader {
-    fun loadArrayFromFile(path: String): QAPInstance {
+    fun loadArrayFromFile(dataPath: String, instanceName: String): QAPInstance {
+        val path = "$dataPath/$instanceName"
+        val instanceNameClean = instanceName.split(".")[0]
         val file = java.io.File(path)
         val lines = file.readLines().filter { it.isNotBlank() }
 
-        // First non-empty line contains the instance size
         val instanceSize = lines[0].trim().toInt()
 
         val flowMatrix = Array(instanceSize) { IntArray(instanceSize) }
@@ -27,10 +28,12 @@ object DataLoader {
             }
         }
 
-        return QAPInstance(instanceSize, flowMatrix, distanceMatrix)
+        return QAPInstance(instanceNameClean, instanceSize, flowMatrix, distanceMatrix)
     }
 
-    fun loadUnformattedInstance(path: String): QAPInstance {
+    fun loadUnformattedInstance(dataPath: String, instanceName: String): QAPInstance {
+        val path = "$dataPath/$instanceName"
+        val instanceNameClean = instanceName.split(".")[0]
         val file = java.io.File(path)
         val values = file.readText().replace("\n", " ").split(" ").filter { it.isNotBlank() }.map { it.toInt() }
 
@@ -51,6 +54,6 @@ object DataLoader {
             }
         }
 
-        return QAPInstance(instanceSize, flowMatrix, distanceMatrix)
+        return QAPInstance(instanceNameClean, instanceSize, flowMatrix, distanceMatrix)
     }
 }

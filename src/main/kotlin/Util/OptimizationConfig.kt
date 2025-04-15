@@ -1,14 +1,16 @@
 package Util
 
+import Enums.AlgorithmType
 import QAP.QAPInstance
 import java.util.Date
 
 data class OptimizationConfig(
     val instance: QAPInstance,
-    val algorithm: Algorithm,
+    val algorithmType: AlgorithmType,
     val time: Long,
-    val algorithmRestarts: Int,
-    val multiStarts: Int,
+    val algorithmRuns: Int = 1,
+    val multiStarts: Int? = null,
+    var aggregateMultiStarts: Boolean = true,
     val timeStamp: Date = Date(),
     val executions: MutableList<Date> = mutableListOf(),
 ) {

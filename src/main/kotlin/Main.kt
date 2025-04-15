@@ -1,6 +1,10 @@
+import Analysis.*
+import Enums.AlgorithmType
+import Enums.AnalysisType
 import QAP.QAPInstance
 import QAP.QAPOptimizer
 import QAP.QAPSolution
+import QAP.runOptimization
 import Results.*
 import Util.*
 
@@ -10,9 +14,9 @@ typealias MultiStartOpimizationFunction = (QAPInstance, Int, Int) -> List<Optimi
 fun main(args: Array<String>) {
     val dataLocation = "data/qapdata/"
 
-    val instanceName = "nug28.dat"
+    val instanceName = "tai12a.dat"
     val instanceNameClean = instanceName.split(".")[0]
-    val instance = DataLoader.loadUnformattedInstance(dataLocation + instanceName)
+    val instance = DataLoader.loadUnformattedInstance(dataLocation, instanceName)
     instance.describe()
     OptimalSolutions.setOptimumForInstance(instance, instanceName)
 
@@ -49,16 +53,29 @@ fun main(args: Array<String>) {
     val algorithmTrend = "heurGMSLS"
 //    analyzeTrend(instance, instanceNameClean, algorithmTrend, startsTrend)
 
-    val startsSimilarity = 300
+    val startsSimilarity = 2
     val algorithmSimilarity = "heurGMSLS"
-    analyzeSimilarity(instance, instanceNameClean, algorithmSimilarity, startsSimilarity)
+
+    val config = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.RANDOM_STEEPEST_MS_LOCAL_SEARCH,
+        time = 5000,
+        multiStarts = 300,
+        algorithmRuns = startsSimilarity,
+    )
+    runAnalysis(
+        config = config,
+        analysisType = AnalysisType.RESTARTS,
+    )
+
+//    analyzeSimilarity(instance, instanceNameClean, algorithmSimilarity, startsSimilarity)
 
 }
 
 fun QAPExperiment(dataLocation: String, instanceName: String, repeats: Int) {
     val instanceNameClean = instanceName.split(".")[0]
 
-    val instance = DataLoader.loadUnformattedInstance(dataLocation + instanceName)
+    val instance = DataLoader.loadUnformattedInstance(dataLocation, instanceName)
     instance.describe()
 
     println("Optimal Solution:")
@@ -198,208 +215,128 @@ fun QAPExperiment(dataLocation: String, instanceName: String, repeats: Int) {
     avgRandGMSLSResult.exportToCSV("results/" + instanceNameClean + "_randGMSLS_avg_results.csv")
 }
 
-fun analyzeSimilarity(
-    instance: QAPInstance,
-    instanceNameClean: String,
-    algorithm: String,
-    starts: Int,
-) {
-    val results: List<OptimizationResult>
-
-    when (algorithm) {
-        "randGMSLS" -> {
-            results = QAPOptimizer.performRandomMultiLSGreedy(instance, starts, 5000)
-        }
-        "randSMSLS" -> {
-            results = QAPOptimizer.performRandomMultiLSSteepest(instance, starts, 5000)
-        }
-        "heurGMSLS" -> {
-            results = QAPOptimizer.performHeuristicMultiLSGreedy(instance, starts, 5000)
-        }
-        "heurSMSLS" -> {
-            results = QAPOptimizer.performHeuristicMultiLSSteepest(instance, starts, 5000)
-        }
-        else -> throw IllegalArgumentException("Unknown algorithm: $algorithm")
-    }
-    val similarityAnalysisReport = SimilarityAnalysisReport(instanceNameClean, instance.optimalSolution!!, results)
-
-    similarityAnalysisReport.exportToCSV("results/${instanceNameClean}_${algorithm}_similarity_analysis.csv")
-}
-
-fun analyzeTrend(
-    instance: QAPInstance,
-    instanceNameClean: String,
-    algorithm: String,
-    starts: Int,
-) {
-    val trendAnalysisReport = TrendAnalysisReport(instanceNameClean)
-    val results: List<OptimizationResult>
-
-    when (algorithm) {
-        "randGMSLS" -> {
-            results = QAPOptimizer.performRandomMultiLSGreedy(instance, starts, 5000)
-        }
-        "randSMSLS" -> {
-            results = QAPOptimizer.performRandomMultiLSSteepest(instance, starts, 5000)
-        }
-        "heurGMSLS" -> {
-            results = QAPOptimizer.performHeuristicMultiLSGreedy(instance, starts, 5000)
-        }
-        "heurSMSLS" -> {
-            results = QAPOptimizer.performHeuristicMultiLSSteepest(instance, starts, 5000)
-        }
-        else -> throw IllegalArgumentException("Unknown algorithm: $algorithm")
-    }
-    results.forEach { trendAnalysisReport.addStep(it.initialSolution!!, it.bestSolution!!)}
-
-    trendAnalysisReport.exportToCSV("results/${instanceNameClean}_${algorithm}_trend_analysis.csv")
-}
-
-fun analyzeRestarts(
-    instance: QAPInstance,
-    instanceNameClean: String,
-    algorithm: String,
-    starts: Int,
-) {
-    val results: List<OptimizationResult>
-    when (algorithm) {
-        "randGMSLS" -> {
-            results = QAPOptimizer.performRandomMultiLSGreedy(instance, starts, 5000)
-        }
-        "randSMSLS" -> {
-            results = QAPOptimizer.performRandomMultiLSSteepest(instance, starts, 5000)
-        }
-        "heurGMSLS" -> {
-            results = QAPOptimizer.performHeuristicMultiLSGreedy(instance, starts, 5000)
-        }
-        "heurSMSLS" -> {
-            results = QAPOptimizer.performHeuristicMultiLSSteepest(instance, starts, 5000)
-        }
-        else -> throw IllegalArgumentException("Unknown algorithm: $algorithm")
-    }
-
-    val restartsAnalysisReport = RestartsAnalysisReport(instanceNameClean, results)
-
-    restartsAnalysisReport.exportToCsv("results/${instanceNameClean}_${algorithm}_restarts_analysis.csv")
-}
-
 fun evaluateAlgorithms(
-    instance: QAPInstance,
-    instanceNameClean: String,
-    repeats: Int
+    configs: List<OptimizationConfig>
 ) {
-    val algorithms = listOf(
-        AlgorithmConfig(
-            "RW", "Random Walk",
-            { inst, maxTime -> QAPOptimizer.performRandomWalk(inst, maxTime) },
-            3
-        ),
-        AlgorithmConfig(
-            "RS", "Random Search",
-            { inst, maxTime -> QAPOptimizer.performRandomSearch(inst, maxTime) },
-            3
-        ),
-        AlgorithmConfig(
-            "heur", "Heuristic",
-            { inst, maxTime -> QAPOptimizer.performHeurstic(inst, maxTime) },
-            5000
-        ),
-        AlgorithmConfig(
-            "heurGLS", "Heuristic Greedy Local Search",
-            { inst, maxTime -> QAPOptimizer.performHeuristicLocalSearchGreedy(inst, maxTime) },
-            5000
-        ),
-        AlgorithmConfig(
-            "randGLS", "Random Greedy Local Search",
-            { inst, maxTime -> QAPOptimizer.performRandomLocalSearchGreedy(inst, maxTime) },
-            5000
-        ),
-        AlgorithmConfig(
-            "heurSLS", "Heuristic Steepest Local Search",
-            { inst, maxTime -> QAPOptimizer.performHeuristicLocalSearchSteepest(inst, maxTime) },
-            5000
-        ),
-        AlgorithmConfig(
-            "randSLS", "Random Steepest Local Search",
-            { inst, maxTime -> QAPOptimizer.performRandomLocalSearchSteepest(inst, maxTime) },
-            5000
-        )
-    )
+    for (config in configs) {
+        val runner = runOptimization(config)
+        val results = runner.results
 
-    val multiStartAlgorithms = listOf(
-        MultiStartAlgorithmConfig(
-            "heurSMSLS", "Heuristic Steepest Multi Start Local Search",
-            { inst, starts, maxTime -> QAPOptimizer.performHeuristicMultiLSSteepest(inst, starts, maxTime) },
-            100, 5000
-        ),
-        MultiStartAlgorithmConfig(
-            "randSMSLS", "Random Steepest Multi Start Local Search",
-            { inst, starts, maxTime -> QAPOptimizer.performRandomMultiLSSteepest(inst, starts, maxTime) },
-            100, 5000
-        ),
-        MultiStartAlgorithmConfig(
-            "heurGMSLS", "Greedy Multi Start Local Search",
-            { inst, starts, maxTime -> QAPOptimizer.performHeuristicMultiLSGreedy(inst, starts, maxTime) },
-            100, 5000
-        ),
-        MultiStartAlgorithmConfig(
-            "randGMSLS", "Random Multi Start Local Search",
-            { inst, starts, maxTime -> QAPOptimizer.performRandomMultiLSGreedy(inst, starts, maxTime) },
-            100, 5000
-        )
-    )
+        val avgResult = AvgOptimizationResult.fromResults(config.algorithmType.toString(), results)
 
-    algorithms.forEach { config ->
-        runAlgorithm(instance, config, repeats, instanceNameClean)
-    }
-
-    multiStartAlgorithms.forEach { config ->
-        runMultiStartAlgorithm(instance, config, repeats, instanceNameClean)
+        avgResult.describe()
+        avgResult.exportToCSV("results/${config.instance.instanceName}_${config.algorithmType}_avg_results.csv")
     }
 }
 
-fun runAlgorithm(
-    instance: QAPInstance,
-    config: AlgorithmConfig,
-    repeats: Int,
-    instanceNameClean: String,
-) {
-    println("${config.displayName}:")
-    val results = mutableListOf<OptimizationResult>()
+fun checkLongestExecutionTime(config: OptimizationConfig): Long {
+    val runner = runOptimization(config)
+    val results = runner.results
 
-    for (i in 0 until repeats) {
-        val result = config.executor(instance, config.maxTime)
-        result.setOptimumIn(instance.optimalSolution!!.solutionCost)
-        results.add(result)
-    }
-
-    val avgResult = AvgOptimizationResult.fromResults(config.name, results)
-    avgResult.describe()
-    avgResult.exportToCSV("results/${instanceNameClean}_${config.name}_avg_results.csv")
+    return results.maxOf { it.runtime }
 }
 
-fun runMultiStartAlgorithm(
-    instance: QAPInstance,
-    config: MultiStartAlgorithmConfig,
-    repeats: Int,
-    instanceNameClean: String,
-) {
-    println("${config.displayName}:")
-    val results = mutableListOf<OptimizationResult>()
+fun QAPBenchmark(dataLocation: String, instanceName: String, repeats: Int){
+    val instance = DataLoader.loadUnformattedInstance(dataLocation, instanceName)
+    instance.describe()
+    OptimalSolutions.setOptimumForInstance(instance, instanceName)
 
-    for (i in 0 until repeats) {
-        val multiResults = config.executor(instance, config.startCount, config.maxTime)
-        multiResults.forEach { it.setOptimumIn(instance.optimalSolution!!.solutionCost) }
-        val bestResult = multiResults.minByOrNull { it.bestSolution!!.solutionCost }!!
-        val longestRuntime = multiResults.maxOf { it.runtime }
-        val sumOfEvaluatedSolutions = multiResults.sumOf { it.evaluatedSolutions }
+    val heurConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.HEURSITC,
+        time = 5000,
+        algorithmRuns = repeats,
+    )
 
-        bestResult.runtime = longestRuntime
-        bestResult.evaluatedSolutions = sumOfEvaluatedSolutions
-        results.add(bestResult)
-    }
+    val randGLSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.RANDOM_GREEDY_LOCAL_SEARCH,
+        time = 5000,
+        algorithmRuns = repeats,
+    )
 
-    val avgResult = AvgOptimizationResult.fromResults(config.name, results)
-    avgResult.describe()
-    avgResult.exportToCSV("results/${instanceNameClean}_${config.name}_avg_results.csv")
+    val randSLSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.RANDOM_STEEPEST_LOCAL_SEARCH,
+        time = 5000,
+        algorithmRuns = repeats,
+    )
+
+    val heurGLSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.HEURISTIC_GREEDY_LOCAL_SEARCH,
+        time = 5000,
+        algorithmRuns = repeats,
+    )
+
+    val heurSLSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.HEURISTIC_STEEPEST_LOCAL_SEARCH,
+        time = 5000,
+        algorithmRuns = repeats,
+    )
+
+    val randGMSLSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.RANDOM_GREEDY_MS_LOCAL_SEARCH,
+        time = 5000,
+        algorithmRuns = repeats,
+        multiStarts = 200,
+    )
+
+    val heurGMSLSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.HEURISTIC_GREEDY_MS_LOCAL_SEARCH,
+        time = 5000,
+        algorithmRuns = repeats,
+        multiStarts = 200,
+    )
+
+    val randSMSLSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.RANDOM_STEEPEST_MS_LOCAL_SEARCH,
+        time = 5000,
+        algorithmRuns = repeats,
+        multiStarts = 200,
+    )
+
+    val heurSMSLSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.HEURISTIC_STEEPEST_MS_LOCAL_SEARCH,
+        time = 5000,
+        algorithmRuns = repeats,
+        multiStarts = 200,
+    )
+
+    val longestExecutionTime = checkLongestExecutionTime(heurSMSLSConfig)
+
+    val RWConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.RANDOM_WALK,
+        time = longestExecutionTime,
+        algorithmRuns = repeats,
+    )
+
+    val RSConfig = OptimizationConfig(
+        instance = instance,
+        algorithmType = AlgorithmType.RANDOM_SEARCH,
+        time = longestExecutionTime,
+        algorithmRuns = repeats,
+    )
+
+    val configs = listOf(
+        heurConfig,
+        randGLSConfig,
+        randSLSConfig,
+        heurGLSConfig,
+        heurSLSConfig,
+        randGMSLSConfig,
+        heurGMSLSConfig,
+        randSMSLSConfig,
+        heurSMSLSConfig,
+        RWConfig,
+        RSConfig
+    )
+
+    evaluateAlgorithms(configs)
 }

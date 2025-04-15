@@ -1,8 +1,9 @@
-package Results
+package Analysis
 
+import Results.OptimizationResult
 import java.io.File
 
-class RestartsAnalysisReport(val name: String) {
+class RestartsAnalysisReport private constructor(override val instanceName: String): AnalysisReport {
     var restarts: MutableList<Int> = mutableListOf()
     var avgBestCost: MutableList<Double> = mutableListOf()
     var bestCost: MutableList<Int> = mutableListOf()
@@ -25,8 +26,8 @@ class RestartsAnalysisReport(val name: String) {
         }
     }
 
-    fun exportToCsv(filename: String = "restarts.csv") {
-        val file = File(filename)
+    override fun exportToCSV(filePath: String) {
+        val file = File(filePath)
         file.printWriter().use { out ->
             out.println("Restarts,AvgBestCost,BestCost")
             for (i in restarts.indices) {
@@ -34,6 +35,8 @@ class RestartsAnalysisReport(val name: String) {
             }
         }
     }
+
+    override fun getReportName(): String = "restarts_analysis"
 
     fun addStep(restarts: Int, avgBestCost: Double, bestCost: Int) {
         this.restarts.add(restarts)

@@ -1,15 +1,18 @@
-package Results
+package Analysis
 
 import QAP.QAPSolution
 import QAP.QAPSolutionManager
+import Results.OptimizationResult
 
-class SimilarityAnalysisReport(val name: String, val optimalSolution: QAPSolution) {
+class SimilarityAnalysisReport private constructor(override val instanceName: String): AnalysisReport {
     val hammingDistance: MutableList<Int> = mutableListOf()
     val hammingSimilarity: MutableList<Double> = mutableListOf()
     val cosineSimilarity: MutableList<Double> = mutableListOf()
     val solutionCosts: MutableList<Int> = mutableListOf()
+    lateinit var optimalSolution: QAPSolution
 
-    constructor(name: String, optimalSolution: QAPSolution, results: List<OptimizationResult>) : this(name, optimalSolution) {
+    constructor(instanceName: String, results: List<OptimizationResult>, optimalSolution: QAPSolution) : this(instanceName) {
+        this.optimalSolution = optimalSolution
         processResults(results)
     }
 
@@ -41,8 +44,8 @@ class SimilarityAnalysisReport(val name: String, val optimalSolution: QAPSolutio
         this.solutionCosts.add(solutionCost)
     }
 
-    fun exportToCSV(filename: String = "similarity.csv") {
-        val file = java.io.File(filename)
+    override fun exportToCSV(filePath: String) {
+        val file = java.io.File(filePath)
         file.printWriter().use { out ->
             out.println("HammingDistance,HammingSimilarity,CosineSimilarity,Cost,OptimalCost")
             for (i in hammingDistance.indices) {
@@ -50,6 +53,8 @@ class SimilarityAnalysisReport(val name: String, val optimalSolution: QAPSolutio
             }
         }
     }
+
+    override fun getReportName(): String = "similarity_analysis"
 
     companion object {
         fun createSteps(result: OptimizationResult) {
