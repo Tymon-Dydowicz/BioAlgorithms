@@ -1,5 +1,5 @@
 package LocalSearch
 
 interface IMove {
-    fun hash(): Int
+    fun extractFeature(): String
 }
