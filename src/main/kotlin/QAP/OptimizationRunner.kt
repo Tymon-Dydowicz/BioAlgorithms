@@ -44,11 +44,16 @@ fun runOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean = 
     val results = if (config.multiStarts == null) {
         println("Running single optimization with ${config.algorithmRuns} runs...")
 
-        List(config.algorithmRuns) {
+        List(config.algorithmRuns) { i ->
+            printProgress(i, config.algorithmRuns)
             algorithm.solve(config.instance)
         }
     } else {
-        List(config.algorithmRuns) {
+        println("Running multi-start optimization with ${config.algorithmRuns} runs...")
+
+        List(config.algorithmRuns) { i ->
+            printProgress(i, config.algorithmRuns)
+
             val multiStartResults = runMultiStartOptimization(
                 algorithm,
                 config.instance,
@@ -56,7 +61,9 @@ fun runOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean = 
             )
 
             if (aggregateMultiStarts) {
-                listOf(multiStartResults.minByOrNull { it.bestSolution?.solutionCost ?: Int.MAX_VALUE }!!)
+                listOf(
+                    multiStartResults.minByOrNull { it.bestSolution?.solutionCost ?: Int.MAX_VALUE }!!
+                )
             } else {
                 multiStartResults
             }
@@ -95,6 +102,15 @@ private fun List<Any>.flattenIfNeeded(flatten: Boolean): List<OptimizationResult
     } else {
         this.flatMap { it as List<OptimizationResult> }
     }
+}
+
+private fun printProgress(current: Int, total: Int) {
+    val percent = (current + 1) * 100 / total
+    val barLength = 20
+    val completed = percent * barLength / 100
+    val progressBar = "[" + "#".repeat(completed) + ".".repeat(barLength - completed) + "]"
+    print("\rProgress: $progressBar $percent%")
+    if (current + 1 == total) println()
 }
 
 fun OptimizationRunner.printSummary() {
