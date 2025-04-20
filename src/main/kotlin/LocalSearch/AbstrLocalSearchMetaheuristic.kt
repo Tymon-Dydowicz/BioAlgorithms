@@ -17,13 +17,7 @@ abstract class AbstrLocalSearchMetaheuristic(
         var currentSolution = solutionGenerator.generate(instance)
         result.initialSolution = currentSolution
 
-        var bestSolution = currentSolution
-        var bestSolutionCost = currentSolution.solutionCost
-        val startTime = System.currentTimeMillis()
-        var lastImprovement = startTime
-        var iteration = 0
-
-        val algorithmState = LocalSearchState(instance, currentSolution, bestSolution, bestSolutionCost, iteration, startTime, lastImprovement)
+        val algorithmState = LocalSearchState(instance, currentSolution, currentSolution, currentSolution.solutionCost)
 
         result.addStep(currentSolution.solutionCost)
         result.increaseEvaluatedSolutions(1)
@@ -34,14 +28,11 @@ abstract class AbstrLocalSearchMetaheuristic(
                 System.currentTimeMillis(),
             )) {
 
-            iteration++
             algorithmState.iteration++
-            println(algorithmState.toString())
+//            TODO change to logging: println(algorithmState.toString())
 
-            // Generate moves for efficiency
             val moves = neighborhoodExplorer.generateMoves(algorithmState.currentSolution)
 
-            // Select next solution based on acceptance criterion
             val (evaluations, selectedMove) = IAcceptanceCriterion.selectNextMove(
                 algorithmState,
                 moves,
@@ -50,31 +41,22 @@ abstract class AbstrLocalSearchMetaheuristic(
 
             result.increaseEvaluatedSolutions(evaluations)
             algorithmState.evaluatedSolutions += evaluations
-            // Apply the selected move to get the next solution
 
-            // Update if a move was selected
             if (selectedMove != null) {
                 currentSolution = neighborhoodExplorer.applyMove(algorithmState.currentSolution, selectedMove)
                 result.addStep(currentSolution.solutionCost)
 
                 algorithmState.currentSolution = currentSolution
 
-                // Update best solution if improved
-                if (currentSolution.solutionCost < bestSolutionCost) {
-                    bestSolution = currentSolution
-                    bestSolutionCost = currentSolution.solutionCost
+                if (currentSolution.solutionCost < algorithmState.bestSolutionCost) {
                     // TODO the last improvement should be a little bit elsewhere
-                    lastImprovement = System.currentTimeMillis()
-
-                    algorithmState.bestSolution = bestSolution
-                    algorithmState.bestSolutionCost = bestSolutionCost
-                    algorithmState.lastImprovement = lastImprovement
+                    algorithmState.bestSolution = currentSolution
+                    algorithmState.bestSolutionCost = currentSolution.solutionCost
+                    algorithmState.lastImprovement = System.currentTimeMillis()
                 }
             } else if (perturbation is IPerturbation.NoPerturbation) {
                 break
             } else {
-                // No acceptable move found, could implement perturbation here
-                // For now, we'll just break out of the loop
                 val destroyedSolution = perturbation.destroy(algorithmState.currentSolution)
                 val perturbatedSolution = perturbation.repair(destroyedSolution)
 
@@ -83,10 +65,10 @@ abstract class AbstrLocalSearchMetaheuristic(
             }
         }
 
-        result.setRuntimeIn(System.currentTimeMillis() - startTime)
-        result.setLastImprovementIn(System.currentTimeMillis() - lastImprovement)
-        result.addStep(bestSolutionCost)
-        result.setBestSolutionIn(bestSolution)
+        result.setRuntimeIn(System.currentTimeMillis() - algorithmState.startTime)
+        result.setLastImprovementIn(System.currentTimeMillis() - algorithmState.lastImprovement)
+        result.addStep(algorithmState.bestSolutionCost)
+        result.setBestSolutionIn(algorithmState.bestSolution)
 
         return result
     }
