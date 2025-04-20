@@ -7,12 +7,15 @@ import LocalSearch.INeighborhoodExplorer
 import QAP.SA.ICoolingSchedule
 import QAP.SA.IReheatingSchedule
 import QAP.SA.TemperatureWrapper
+import org.slf4j.LoggerFactory
 
 class SimulatedAnnealingAcceptance(
     private val temperatureWrapper: TemperatureWrapper,
     private val reheatingSchedule: IReheatingSchedule,
     private val coolingSchedule: ICoolingSchedule
 ): IAcceptanceCriterion {
+    private val logger = LoggerFactory.getLogger(SimulatedAnnealingAcceptance::class.java)
+
     override fun selectNextMove(
         algorithmState: LocalSearchState,
         moves: List<IMove>,
@@ -28,7 +31,7 @@ class SimulatedAnnealingAcceptance(
             evaluations++
 
             if (delta < 0) {
-//                TODO change to logging: println("Accepted improving move with delta: $delta, temperature: $temperature")
+                logger.info("Accepted improving move with delta: $delta, temperature: $temperature")
                 bestMove = move
                 bestCost = delta
                 algorithmState.iterationsWithoutImprovement = 0
@@ -36,7 +39,7 @@ class SimulatedAnnealingAcceptance(
             } else {
                 val acceptanceProbability = Math.exp(-delta / temperature)
                 if (Math.random() < acceptanceProbability) {
-//                    TODO change to logging: println("Accepted deteriorating move with delta: $delta, temperature: $temperature")
+                    logger.info("Accepted deteriorating move with delta: $delta, temperature: $temperature")
                     bestMove = move
                     bestCost = delta
                     algorithmState.iterationsWithoutImprovement++

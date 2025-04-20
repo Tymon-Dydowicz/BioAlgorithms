@@ -2,6 +2,8 @@ package LocalSearch
 
 import QAP.QAPInstance
 import Results.OptimizationResult
+import org.slf4j.LoggerFactory
+
 
 abstract class AbstrLocalSearchMetaheuristic(
     protected val solutionGenerator: ISolutionGenerator,
@@ -10,7 +12,10 @@ abstract class AbstrLocalSearchMetaheuristic(
     protected val stoppingCriterion: IStoppingCriterion,
     protected val perturbation: IPerturbation,
 ) {
+    private val logger = LoggerFactory.getLogger(AbstrLocalSearchMetaheuristic::class.java)
+
     fun solve(instance: QAPInstance): OptimizationResult {
+
         val result = OptimizationResult(getAlgorithmDescription())
         result.optimum = instance.optimalSolution!!.solutionCost
 
@@ -29,7 +34,7 @@ abstract class AbstrLocalSearchMetaheuristic(
             )) {
 
             algorithmState.iteration++
-//            TODO change to logging: println(algorithmState.toString())
+            logger.info(algorithmState.toString())
 
             val moves = neighborhoodExplorer.generateMoves(algorithmState.currentSolution)
 

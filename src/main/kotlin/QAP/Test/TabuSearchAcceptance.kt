@@ -8,12 +8,14 @@ import QAP.TabuSearch.IAspirationCriterion
 import QAP.TabuSearch.IMoveFeatureExtractor
 import QAP.TabuSearch.ITabuList
 import QAP.TabuSearch.ITabuTenureSchedule
+import org.slf4j.LoggerFactory
 
 class TabuSearchAcceptance(
     private val tabuList: ITabuList,
     private val aspirationCriterion: IAspirationCriterion,
     private val tenureSchedule: ITabuTenureSchedule
 ) : IAcceptanceCriterion {
+    private val logger = LoggerFactory.getLogger(TabuSearchAcceptance::class.java)
 
     override fun selectNextMove(
         algorithmState: LocalSearchState,
@@ -48,9 +50,9 @@ class TabuSearchAcceptance(
             val isImproving = algorithmState.currentSolution.solutionCost + bestDelta < algorithmState.bestSolutionCost
             tenureSchedule.notifyMoveSelected(bestDelta, isImproving)
 
-//            TODO change to logging: println("Selected move with delta: $bestDelta, tabu list size: ${tabuList.getTabuListSize()}")
+            logger.info("Selected move with delta: $bestDelta, tabu list size: ${tabuList.getTabuListSize()}")
         } else {
-//            TODO change to logging: println("No valid move found - all moves are tabu and don't pass aspiration")
+            logger.info("No valid move found - all moves are tabu and don't pass aspiration")
         }
 
         return Pair(evaluations, bestMove)

@@ -302,14 +302,6 @@ object QAPOptimizer {
         }
     }
 
-    fun performSimulatedAnnealing(instance: QAPInstance, time: Long): OptimizationResult {
-        TODO()
-    }
-
-    fun performTabuSearch(instance: QAPInstance, time: Long): OptimizationResult {
-        TODO()
-    }
-
     private fun List<Any>.flattenIfNeeded(flatten: Boolean): List<OptimizationResult> {
         return if (flatten) {
             this as List<OptimizationResult>
