@@ -2,7 +2,6 @@ package QAP
 
 import Results.OptimizationResult
 import Enums.AlgorithmType
-import Util.OptimizationConfig
 import Util.Randomizer
 import java.util.*
 import java.util.concurrent.Executors
@@ -61,7 +60,6 @@ object QAPOptimizer {
     }
 
     fun generateRandomSolution(qap: QAPInstance): QAPSolution {
-
         val locations = Array(qap.instanceSize) { it }
         val randomSolution = Randomizer.randomShuffle(locations)
 
@@ -302,6 +300,14 @@ object QAPOptimizer {
         } finally {
             executor.shutdown()
         }
+    }
+
+    fun performSimulatedAnnealing(instance: QAPInstance, time: Long): OptimizationResult {
+        TODO()
+    }
+
+    fun performTabuSearch(instance: QAPInstance, time: Long): OptimizationResult {
+        TODO()
     }
 
     private fun List<Any>.flattenIfNeeded(flatten: Boolean): List<OptimizationResult> {

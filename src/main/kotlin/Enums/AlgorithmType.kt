@@ -1,6 +1,6 @@
 package Enums
 
-enum class AlgorithmType(val displayName: String) {
+enum class AlgorithmType(private val displayName: String) {
     RANDOM_WALK("RW"),
     RANDOM_SEARCH("RS"),
     HEURSITC("heur"),
@@ -11,7 +11,8 @@ enum class AlgorithmType(val displayName: String) {
     RANDOM_GREEDY_MS_LOCAL_SEARCH("randGMSLS"),
     RANDOM_STEEPEST_MS_LOCAL_SEARCH("randSMSLS"),
     HEURISTIC_GREEDY_MS_LOCAL_SEARCH("heurGMSLS"),
-    HEURISTIC_STEEPEST_MS_LOCAL_SEARCH("heurSMSLS");
+    HEURISTIC_STEEPEST_MS_LOCAL_SEARCH("heurSMSLS"),
+    CUSTOM("custom");
 
     override fun toString(): String {
         return displayName
