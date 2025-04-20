@@ -1,5 +1,6 @@
 package LocalSearch
 
 interface IMove {
-    fun extractFeature(): String
+    fun extractFeature(featureType: String = "default"): String
+    fun getAvailableFeatureTypes(): Set<String>
 }

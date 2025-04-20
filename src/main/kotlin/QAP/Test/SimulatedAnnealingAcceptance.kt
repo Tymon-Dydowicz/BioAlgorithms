@@ -28,16 +28,18 @@ class SimulatedAnnealingAcceptance(
             evaluations++
 
             if (delta < 0) {
-                println("Accepted improving move with delta: $delta, temperature: $temperature")
+//                TODO change to logging: println("Accepted improving move with delta: $delta, temperature: $temperature")
                 bestMove = move
                 bestCost = delta
+                algorithmState.iterationsWithoutImprovement = 0
                 break
             } else {
                 val acceptanceProbability = Math.exp(-delta / temperature)
                 if (Math.random() < acceptanceProbability) {
-                    println("Accepted deteriorating move with delta: $delta, temperature: $temperature")
+//                    TODO change to logging: println("Accepted deteriorating move with delta: $delta, temperature: $temperature")
                     bestMove = move
                     bestCost = delta
+                    algorithmState.iterationsWithoutImprovement++
                     break
                 }
             }

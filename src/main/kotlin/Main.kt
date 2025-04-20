@@ -4,6 +4,10 @@ import QAP.*
 import QAP.SA.ICoolingSchedule
 import QAP.SA.IReheatingSchedule
 import QAP.SA.TemperatureWrapper
+import QAP.TabuSearch.IAspirationCriterion
+import QAP.TabuSearch.IMoveFeatureExtractor
+import QAP.TabuSearch.ITabuList
+import QAP.TabuSearch.ITabuTenureSchedule
 import QAP.Test.*
 import Results.*
 import Util.*
@@ -66,8 +70,35 @@ fun main(args: Array<String>) {
 //        analysisType = AnalysisType.RESTARTS,
 //    )
 
+    runTabuSearch(instance)
 
+}
 
+fun runTabuSearch(instance: QAPInstance) {
+    val tabuConfig = LocalSearchConfig(
+        RandomSolutionGenerator(),
+        SwapNeighborhoodExplorer(),
+        TabuSearchAcceptance(
+            ITabuList.AttributeBasedTabuList(IMoveFeatureExtractor.Default()),
+            IAspirationCriterion.BestMove(),
+            ITabuTenureSchedule.SizeBasedTenure(132)
+//            ITabuTenureSchedule.StaticTenure(50), // Static 50 finds the optimum very often
+        ),
+        IStoppingCriterion.temperatureThreshold(100.0) or
+                IStoppingCriterion.maxRuntime(100) or
+                IStoppingCriterion.maxIterations(1000000),
+    )
+    val LSTabuConfig = OptimizationConfig(
+        instance = instance,
+        localSearchConfig = tabuConfig,
+        time = 5000,
+        algorithmRuns = 50,
+    )
+
+    evaluateAlgorithms(listOf(LSTabuConfig))
+}
+
+fun runSimulateAnnealing(instance: QAPInstance) {
     val initialTemp = TemperatureWrapper.calculateInitialTemperature(RandomSolutionGenerator().generate(instance), SwapNeighborhoodExplorer())
     println("Initial temperature: $initialTemp")
     val temperatureWrapper = TemperatureWrapper(initialTemp)
@@ -88,7 +119,6 @@ fun main(args: Array<String>) {
     )
 
     evaluateAlgorithms(listOf(LSSAConfig))
-
 }
 
 fun evaluateAlgorithms(

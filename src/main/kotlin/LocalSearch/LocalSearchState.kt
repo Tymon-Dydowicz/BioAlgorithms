@@ -11,6 +11,7 @@ data class LocalSearchState(
     var iteration: Int = 0,
     val startTime: Long = System.currentTimeMillis(),
     var lastImprovement: Long = System.currentTimeMillis(),
+    var iterationsWithoutImprovement: Int = 0,
     var evaluatedSolutions: Int = 0,
     var temperature: Double = Double.MAX_VALUE,
     var perturbations: Int = 0,

@@ -1,5 +1,6 @@
 package QAP.Test
 
+import LocalSearch.IStoppingCriterion
 import LocalSearch.LocalSearchConfig
 
 object LocalSearchFactory {
@@ -8,7 +9,7 @@ object LocalSearchFactory {
             if (heuristicInitial) HeuristicSolutionGenerator() else RandomSolutionGenerator(),
             SwapNeighborhoodExplorer(),
             GreedyAcceptance(),
-            TimeBasedStopping(maxTime),
+            IStoppingCriterion.maxRuntime(maxTime),
         )
     }
 
@@ -18,7 +19,7 @@ object LocalSearchFactory {
             if (heuristicInitial) HeuristicSolutionGenerator() else RandomSolutionGenerator(),
             SwapNeighborhoodExplorer(),
             SteepestAcceptance(),
-            TimeBasedStopping(maxTime),
+            IStoppingCriterion.maxRuntime(maxTime),
         )
     }
 }
