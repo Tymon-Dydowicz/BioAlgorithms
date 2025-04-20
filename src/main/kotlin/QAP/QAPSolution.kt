@@ -1,6 +1,7 @@
 package QAP
 
 class QAPSolution(val instance: QAPInstance, val solution: IntArray) {
+    // TODO Abstract the QAPSolution into a generic solution class
     var solutionCost: Int
 
     init {

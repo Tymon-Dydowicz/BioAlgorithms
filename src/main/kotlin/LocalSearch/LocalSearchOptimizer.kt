@@ -1,0 +1,4 @@
+package LocalSearch
+
+object LocalSearchOptimizer {
+}

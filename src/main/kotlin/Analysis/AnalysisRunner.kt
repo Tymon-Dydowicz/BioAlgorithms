@@ -2,7 +2,7 @@ package Analysis
 
 import Enums.AnalysisType
 import QAP.runOptimization
-import Util.OptimizationConfig
+import QAP.OptimizationConfig
 
 
 fun runAnalysis(

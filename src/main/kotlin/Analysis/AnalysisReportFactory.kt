@@ -2,9 +2,7 @@ package Analysis
 
 import Enums.AnalysisType
 import QAP.QAPSolution
-import QAP.runOptimization
 import Results.OptimizationResult
-import Util.OptimizationConfig
 
 object AnalysisReportFactory {
     fun createReport(type: AnalysisType, instanceName: String, results: List<OptimizationResult>, optimalSolution: QAPSolution? = null): AnalysisReport {

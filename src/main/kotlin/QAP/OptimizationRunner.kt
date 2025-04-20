@@ -1,12 +1,10 @@
 package QAP
 
+import LocalSearch.AbstrLocalSearchMetaheuristic
 import Results.OptimizationResult
-import Util.OptimizationConfig
 import java.util.*
+import java.util.concurrent.Executors
 
-/**
- * Data class that encapsulates optimization execution details and results
- */
 data class OptimizationRunner(
     val config: OptimizationConfig,
     val startTime: Date = Date(),
@@ -15,60 +13,106 @@ data class OptimizationRunner(
     var endTime: Date? = null
     var totalExecutionTimeMs: Long = 0
 
-    /**
-     * Returns the best result found across all executions
-     */
     fun getBestResult(): OptimizationResult? {
         return results.minByOrNull { it.bestSolution?.solutionCost ?: Int.MAX_VALUE }
     }
 
-    /**
-     * Returns average solution cost across all results
-     */
     fun getAverageSolutionCost(): Double {
         if (results.isEmpty()) return 0.0
         return results.mapNotNull { it.bestSolution?.solutionCost?.toDouble() }.average()
     }
 
-    /**
-     * Returns average execution time across all results
-     */
     fun getAverageExecutionTime(): Double {
         if (results.isEmpty()) return 0.0
-        return results.mapNotNull { it.runtime?.toDouble() }.average()
+        return results.map { it.runtime.toDouble() }.average()
     }
 
-    /**
-     * Completes the optimization run by setting end time and calculating total time
-     */
     fun complete() {
         endTime = Date()
         totalExecutionTimeMs = endTime!!.time - startTime.time
     }
 }
 
-/**
- * Runs optimization based on the given configuration and returns an OptimizationRunner
- * with execution details and results.
- */
 fun runOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean = true): OptimizationRunner {
     val runner = OptimizationRunner(config)
 
-    // Add execution timestamp to config
     config.executions.add(runner.startTime)
 
-    // Execute optimization using the QAPOptimizer
-    val results = QAPOptimizer.performOptimization(config, aggregateMultiStarts)
+    val algorithm = config.localSearchConfig.createAlgorithm()
+    config.instance.describe()
+
+    val results = if (config.multiStarts == null) {
+        println("Running single optimization with ${config.algorithmRuns} runs...")
+
+        List(config.algorithmRuns) { i ->
+            printProgress(i, config.algorithmRuns)
+            algorithm.solve(config.instance)
+        }
+    } else {
+        println("Running multi-start optimization with ${config.algorithmRuns} runs...")
+
+        List(config.algorithmRuns) { i ->
+            printProgress(i, config.algorithmRuns)
+
+            val multiStartResults = runMultiStartOptimization(
+                algorithm,
+                config.instance,
+                config.multiStarts,
+            )
+
+            if (aggregateMultiStarts) {
+                listOf(
+                    multiStartResults.minByOrNull { it.bestSolution?.solutionCost ?: Int.MAX_VALUE }!!
+                )
+            } else {
+                multiStartResults
+            }
+        }.flatten()
+    }
+
     runner.results.addAll(results)
 
-    // Complete the run and return the runner
     runner.complete()
     return runner
 }
 
-/**
- * Extension function to print a summary of optimization results
- */
+fun runMultiStartOptimization(
+    algorithm: AbstrLocalSearchMetaheuristic,
+    instance: QAPInstance,
+    starts: Int,
+): List<OptimizationResult> {
+    val executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+
+    try {
+        val futures = (1..starts).map {
+            executor.submit<OptimizationResult> {
+                algorithm.solve(instance)
+            }
+        }
+
+        return futures.map { it.get() }
+    } finally {
+        executor.shutdown()
+    }
+}
+
+private fun List<Any>.flattenIfNeeded(flatten: Boolean): List<OptimizationResult> {
+    return if (flatten) {
+        this as List<OptimizationResult>
+    } else {
+        this.flatMap { it as List<OptimizationResult> }
+    }
+}
+
+private fun printProgress(current: Int, total: Int) {
+    val percent = (current + 1) * 100 / total
+    val barLength = 20
+    val completed = percent * barLength / 100
+    val progressBar = "[" + "#".repeat(completed) + ".".repeat(barLength - completed) + "]"
+    print("\rProgress: $progressBar $percent%")
+    if (current + 1 == total) println()
+}
+
 fun OptimizationRunner.printSummary() {
     println("=== Optimization Summary ===")
     println("Algorithm: ${config.algorithmType}")

@@ -34,6 +34,7 @@ class QAPInstance {
         for (i in 0 until instanceSize) {
             println(distances[i].joinToString(" "))
         }
+        optimalSolution?.describe()
         println("")
     }
 
