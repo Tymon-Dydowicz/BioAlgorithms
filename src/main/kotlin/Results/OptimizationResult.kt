@@ -13,7 +13,7 @@ class OptimizationResult(val name: String) {
     var bestSolution: QAPSolution? = null
     var timeSinceLastImprovement: Long = 0
     var optimum: Int = 0
-    var evaluatedSolutions: Int = 0
+    var evaluatedSolutions: Long = 0
 
     fun describe() {
         print("Method: $name \n" +

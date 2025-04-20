@@ -6,24 +6,29 @@ import kotlin.math.sqrt
 class AvgOptimizationResult(val name: String, private val results: List<OptimizationResult>) {
     var avgRuntime: Double = 0.0
     var stdDevRuntime: Double = 0.0
+    var bestRuntime: Long = Long.MAX_VALUE
 
     var avgPosSteps: Double = 0.0
     var stdDevPosSteps: Double = 0.0
+    var bestPosSteps: Int = Int.MAX_VALUE
 
     var avgNegSteps: Double = 0.0
     var stdDevNegSteps: Double = 0.0
+    var bestNegSteps: Int = Int.MAX_VALUE
 
     var avgBestCost: Double = 0.0
     var stdDevBestCost: Double = 0.0
-    var bestCost: Int = 0
+    var bestCost: Int = Int.MAX_VALUE
 
     var avgTimeSinceLastImprovement: Double = 0.0
     var stdDevTimeSinceLastImprovement: Double = 0.0
+    var bestTimeSinceLastImprovement: Long = Long.MAX_VALUE
 
     var optimum: Int = 0
 
     var avgEvaluatedSolutions: Double = 0.0
     var stdDevEvaluatedSolutions: Double = 0.0
+    var bestEvaluatedSolutions: Long = Long.MAX_VALUE
 
     var avgSolutionSteps: MutableList<Double> = mutableListOf()
     var stdDevSolutionSteps: MutableList<Double> = mutableListOf()
@@ -42,7 +47,7 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
         avgBestCost = results.mapNotNull { it.bestSolution?.solutionCost }.averageInt()
         avgTimeSinceLastImprovement = results.map { it.timeSinceLastImprovement }.averageLong()
         optimum = results.firstOrNull()?.optimum ?: 0
-        avgEvaluatedSolutions = results.map { it.evaluatedSolutions }.averageInt()
+        avgEvaluatedSolutions = results.map { it.evaluatedSolutions }.averageLong()
 
         stdDevRuntime = calculateStdDev(results.map { it.runtime.toDouble() })
         stdDevPosSteps = calculateStdDev(results.map { it.posSteps.toDouble() })
@@ -52,7 +57,14 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
         stdDevEvaluatedSolutions = calculateStdDev(results.map { it.evaluatedSolutions.toDouble() })
 
 //        val minStepsLength = results.minOf { it.solutionSteps.size }
-        val bestResult = results.maxByOrNull { it.bestSolution?.solutionCost ?: Int.MAX_VALUE }
+        val bestResult = results.minByOrNull { it.bestSolution?.solutionCost ?: Int.MAX_VALUE }
+        bestRuntime = bestResult?.runtime ?: Long.MAX_VALUE
+        bestPosSteps = bestResult?.posSteps ?: Int.MAX_VALUE
+        bestNegSteps = bestResult?.negSteps ?: Int.MAX_VALUE
+        bestCost = bestResult?.bestSolution?.solutionCost ?: Int.MAX_VALUE
+        bestTimeSinceLastImprovement = bestResult?.timeSinceLastImprovement ?: Long.MAX_VALUE
+        bestEvaluatedSolutions = bestResult?.evaluatedSolutions ?: Long.MAX_VALUE
+
         val maxStepsLength = results.maxOfOrNull { it.solutionSteps.size } ?: 0
 
         for (i in 0 until maxStepsLength) {
@@ -102,14 +114,14 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
 
         val csvContent = StringBuilder()
         csvContent.appendLine("type,key,value,std_dev,best")
-        csvContent.appendLine("metadata,runtime,$avgRuntime,$stdDevRuntime")
-        csvContent.appendLine("metadata,posSteps,$avgPosSteps,$stdDevPosSteps")
-        csvContent.appendLine("metadata,negSteps,$avgNegSteps,$stdDevNegSteps")
-        csvContent.appendLine("metadata,bestCost,$avgBestCost,$stdDevBestCost")
-        csvContent.appendLine("metadata,timeSinceLastImprovement,$avgTimeSinceLastImprovement,$stdDevTimeSinceLastImprovement")
-        csvContent.appendLine("metadata,optimum,$optimum,0")
-        csvContent.appendLine("metadata,evaluatedSolutions,$avgEvaluatedSolutions,$stdDevEvaluatedSolutions")
-        csvContent.appendLine("metadata,gapToOptimum,${((avgBestCost / optimum) - 1) * 100},0")
+        csvContent.appendLine("metadata,runtime,$avgRuntime,$stdDevRuntime,$bestRuntime")
+        csvContent.appendLine("metadata,posSteps,$avgPosSteps,$stdDevPosSteps,$bestPosSteps")
+        csvContent.appendLine("metadata,negSteps,$avgNegSteps,$stdDevNegSteps,$bestNegSteps")
+        csvContent.appendLine("metadata,bestCost,$avgBestCost,$stdDevBestCost,$bestCost")
+        csvContent.appendLine("metadata,timeSinceLastImprovement,$avgTimeSinceLastImprovement,$stdDevTimeSinceLastImprovement,$bestTimeSinceLastImprovement")
+        csvContent.appendLine("metadata,optimum,$optimum,0,$optimum")
+        csvContent.appendLine("metadata,evaluatedSolutions,$avgEvaluatedSolutions,$stdDevEvaluatedSolutions,$bestEvaluatedSolutions")
+        csvContent.appendLine("metadata,gapToOptimum,${((avgBestCost / optimum) - 1) * 100},0,${((bestCost.toDouble() / optimum) - 1) * 100}")
 
         avgSolutionSteps.forEachIndexed { index, avgCost ->
             csvContent.appendLine("step,$index,$avgCost,${stdDevSolutionSteps[index]},${bestSolutionSteps[index]}")
