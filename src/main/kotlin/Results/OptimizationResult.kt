@@ -3,12 +3,15 @@ package Results
 import QAP.QAPSolution
 import java.io.File
 
-class OptimizationResult(val name: String) {
+class OptimizationResult(val name: String, val instanceSize: Int) {
     var runtime: Long = 0
 //    var solutions: MutableList<QAPSolution> = mutableListOf()
     var solutionSteps: MutableList<Int> = mutableListOf()
+    val solutionTimestamps: MutableList<Long> = mutableListOf()
     var posSteps: Int = 0
     var negSteps: Int = 0
+    var totalSteps: Int = 0
+    var algorithmLoops: Int = 0
     var initialSolution: QAPSolution? = null
     var bestSolution: QAPSolution? = null
     var timeSinceLastImprovement: Long = 0
@@ -16,17 +19,24 @@ class OptimizationResult(val name: String) {
     var evaluatedSolutions: Long = 0
 
     fun describe() {
-        print("Method: $name \n" +
+        print(
+            "-- Optimization Result | Size ($instanceSize)-- \n" +
+                "Method: $name \n" +
                 "Runtime: $runtime \n" +
-                "Positive Steps $posSteps | Negative Steps $negSteps \n" +
-                "Best Solution cost: ${bestSolution!!.solutionCost} \n")
+                "Positive Steps $posSteps | Negative Steps $negSteps | Total Steps $totalSteps \n" +
+                "Initial Solution: ${initialSolution!!.solutionCost} \n" +
+                "Optimum: ${optimum} | ${bestSolution!!.solutionCost} :Best Solution cost \n" +
+                "Time since last improvement: $timeSinceLastImprovement ns\n" +
+                "Evaluated Solutions: $evaluatedSolutions \n" +
+                "Gap to optimum: ${((bestSolution!!.solutionCost.toDouble() / optimum) - 1) * 100} \n" +
+        "-------------------------------------- \n")
 //                "Cost changes $solutionSteps \n")
     }
 //    fun addSolution(solution: QAPSolution) {
 //        solutions.add(solution)
 //    }
 
-    fun addStep(cost: Int) {
+    fun addStep(cost: Int, time: Long) {
         var lastCost = Int.MAX_VALUE
         if (solutionSteps.isNotEmpty()) {
             lastCost = solutionSteps.last()
@@ -38,6 +48,7 @@ class OptimizationResult(val name: String) {
             posSteps += 1
         }
         solutionSteps.add(cost)
+        this.solutionTimestamps.add(time)
     }
 
     fun setRuntimeIn(runtime: Long) {
@@ -70,6 +81,7 @@ class OptimizationResult(val name: String) {
         csvContent.appendLine("metadata,negSteps,$negSteps")
         csvContent.appendLine("metadata,timeSinceLastImprovement,$timeSinceLastImprovement")
         csvContent.appendLine("metadata,optimum,$optimum")
+        csvContent.appendLine("metadata,gapToOptimum,${((bestSolution!!.solutionCost.toDouble() / optimum) - 1) * 100}")
         csvContent.appendLine("metadata,evaluatedSolutions,$evaluatedSolutions")
 
         solutionSteps.forEachIndexed { index, cost ->

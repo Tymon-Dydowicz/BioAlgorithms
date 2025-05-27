@@ -4,6 +4,7 @@ import java.io.File
 import kotlin.math.sqrt
 
 class AvgOptimizationResult(val name: String, private val results: List<OptimizationResult>) {
+    var instanceSize: Int = results.firstOrNull()?.instanceSize ?: 0
     var avgRuntime: Double = 0.0
     var stdDevRuntime: Double = 0.0
     var bestRuntime: Long = Long.MAX_VALUE
@@ -15,6 +16,14 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
     var avgNegSteps: Double = 0.0
     var stdDevNegSteps: Double = 0.0
     var bestNegSteps: Int = Int.MAX_VALUE
+
+    var avgTotalSteps: Double = 0.0
+    var stdDevTotalSteps: Double = 0.0
+    var bestTotalSteps: Int = Int.MAX_VALUE
+
+    var avgAlgorithmLoops: Double = 0.0
+    var stdDevAlgorithmLoops: Double = 0.0
+    var bestAlgorithmLoops: Int = Int.MAX_VALUE
 
     var avgBestCost: Double = 0.0
     var stdDevBestCost: Double = 0.0
@@ -31,8 +40,10 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
     var bestEvaluatedSolutions: Long = Long.MAX_VALUE
 
     var avgSolutionSteps: MutableList<Double> = mutableListOf()
+    var avgSolutionTimestamps: MutableList<Long> = mutableListOf()
     var stdDevSolutionSteps: MutableList<Double> = mutableListOf()
     var bestSolutionSteps: MutableList<Int> = mutableListOf()
+//    var bestSolutionTimestamps: MutableList<Long> = mutableListOf()
 
     init {
         if (results.isNotEmpty()) {
@@ -44,6 +55,8 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
         avgRuntime = results.map { it.runtime }.averageLong()
         avgPosSteps = results.map { it.posSteps }.averageInt()
         avgNegSteps = results.map { it.negSteps }.averageInt()
+        avgTotalSteps = results.map { it.totalSteps }.averageInt()
+        avgAlgorithmLoops = results.map { it.algorithmLoops }.averageInt()
         avgBestCost = results.mapNotNull { it.bestSolution?.solutionCost }.averageInt()
         avgTimeSinceLastImprovement = results.map { it.timeSinceLastImprovement }.averageLong()
         optimum = results.firstOrNull()?.optimum ?: 0
@@ -52,6 +65,8 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
         stdDevRuntime = calculateStdDev(results.map { it.runtime.toDouble() })
         stdDevPosSteps = calculateStdDev(results.map { it.posSteps.toDouble() })
         stdDevNegSteps = calculateStdDev(results.map { it.negSteps.toDouble() })
+        stdDevTotalSteps = calculateStdDev(results.map { it.totalSteps.toDouble() })
+        stdDevAlgorithmLoops = calculateStdDev(results.map { it.algorithmLoops.toDouble() })
         stdDevBestCost = calculateStdDev(results.mapNotNull { it.bestSolution?.solutionCost?.toDouble() })
         stdDevTimeSinceLastImprovement = calculateStdDev(results.map { it.timeSinceLastImprovement.toDouble() })
         stdDevEvaluatedSolutions = calculateStdDev(results.map { it.evaluatedSolutions.toDouble() })
@@ -61,6 +76,8 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
         bestRuntime = bestResult?.runtime ?: Long.MAX_VALUE
         bestPosSteps = bestResult?.posSteps ?: Int.MAX_VALUE
         bestNegSteps = bestResult?.negSteps ?: Int.MAX_VALUE
+        bestTotalSteps = bestResult?.totalSteps ?: Int.MAX_VALUE
+        bestAlgorithmLoops = bestResult?.algorithmLoops ?: Int.MAX_VALUE
         bestCost = bestResult?.bestSolution?.solutionCost ?: Int.MAX_VALUE
         bestTimeSinceLastImprovement = bestResult?.timeSinceLastImprovement ?: Long.MAX_VALUE
         bestEvaluatedSolutions = bestResult?.evaluatedSolutions ?: Long.MAX_VALUE
@@ -71,10 +88,15 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
             val stepsAtIteration = results
                 .mapNotNull { it.solutionSteps.getOrNull(i)?.toDouble() }
 
+            val timestampsAtIteration = results
+                .mapNotNull { it.solutionTimestamps.getOrNull(i) }
+
             if (stepsAtIteration.isNotEmpty()) {
                 avgSolutionSteps.add(stepsAtIteration.average())
+                avgSolutionTimestamps.add(timestampsAtIteration.averageLong().toLong())
                 stdDevSolutionSteps.add(calculateStdDev(stepsAtIteration))
                 bestSolutionSteps.add(bestResult?.solutionSteps?.getOrNull(i) ?: -1)
+//                bestSolutionTimestamps.add(bestResult?.solutionTimestamps?.getOrNull(i) ?: -1L)
             }
         }
     }
@@ -103,8 +125,10 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
         println("Method: $name (Averaged over ${results.size} runs)")
         println("Runtime: $avgRuntime ± $stdDevRuntime ms")
         println("Positive Steps: $avgPosSteps ± $stdDevPosSteps | Negative Steps: $avgNegSteps ± $stdDevNegSteps")
+        println("Runtime: $avgRuntime ± $stdDevRuntime ns")
+        println("Positive Steps: $avgPosSteps ± $stdDevPosSteps | Negative Steps: $avgNegSteps ± $stdDevNegSteps | Total Steps: $avgTotalSteps ± $stdDevTotalSteps")
         println("Best Solution Cost: $avgBestCost ± $stdDevBestCost")
-        println("Time Since Last Improvement: $avgTimeSinceLastImprovement ± $stdDevTimeSinceLastImprovement ms")
+        println("Time Since Last Improvement: $avgTimeSinceLastImprovement ± $stdDevTimeSinceLastImprovement ns")
         println("Evaluated Solutions: $avgEvaluatedSolutions ± $stdDevEvaluatedSolutions")
         println("Gap to Optimum: ${((avgBestCost / optimum) - 1) * 100}%")
     }
@@ -113,10 +137,13 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
         val file = File(filename)
 
         val csvContent = StringBuilder()
-        csvContent.appendLine("type,key,value,std_dev,best")
+        csvContent.appendLine("type,key,value,std_dev,best,timestamp")
+        csvContent.appendLine("metadata,instanceSize,${instanceSize},0,${instanceSize}")
         csvContent.appendLine("metadata,runtime,$avgRuntime,$stdDevRuntime,$bestRuntime")
         csvContent.appendLine("metadata,posSteps,$avgPosSteps,$stdDevPosSteps,$bestPosSteps")
         csvContent.appendLine("metadata,negSteps,$avgNegSteps,$stdDevNegSteps,$bestNegSteps")
+        csvContent.appendLine("metadata,totalSteps,$avgTotalSteps,$stdDevTotalSteps,$bestTotalSteps")
+        csvContent.appendLine("metadata,algorithmLoops,$avgAlgorithmLoops,$stdDevAlgorithmLoops,$bestAlgorithmLoops")
         csvContent.appendLine("metadata,bestCost,$avgBestCost,$stdDevBestCost,$bestCost")
         csvContent.appendLine("metadata,timeSinceLastImprovement,$avgTimeSinceLastImprovement,$stdDevTimeSinceLastImprovement,$bestTimeSinceLastImprovement")
         csvContent.appendLine("metadata,optimum,$optimum,0,$optimum")
@@ -124,7 +151,7 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
         csvContent.appendLine("metadata,gapToOptimum,${((avgBestCost / optimum) - 1) * 100},0,${((bestCost.toDouble() / optimum) - 1) * 100}")
 
         avgSolutionSteps.forEachIndexed { index, avgCost ->
-            csvContent.appendLine("step,$index,$avgCost,${stdDevSolutionSteps[index]},${bestSolutionSteps[index]}")
+            csvContent.appendLine("step,$index,$avgCost,${stdDevSolutionSteps[index]},${bestSolutionSteps[index]},${avgSolutionTimestamps[index]}")
         }
 
         file.writeText(csvContent.toString())
@@ -132,7 +159,13 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
 
     companion object {
         fun fromResults(name: String, results: List<OptimizationResult>): AvgOptimizationResult {
-            return AvgOptimizationResult(name, results)
+            // discard 1st result because of warmup
+            val resultsWarmup = results.drop(1)
+//            println("individual results:")
+//            for (result in results) {
+//                println(result.runtime)
+//            }
+            return AvgOptimizationResult(name, resultsWarmup)
         }
     }
 }

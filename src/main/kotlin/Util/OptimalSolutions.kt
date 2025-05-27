@@ -9,6 +9,7 @@ object OptimalSolutions {
         "chr12a.dat" to intArrayOf(7,5,12,2,1,3,9,11,10,6,8,4),
         "had12.dat" to intArrayOf(3,10,11,2,12,5,6,7,8,1,4,9),
         "tai12a.dat" to intArrayOf(8,1,6,2,11,10,3,5,9,7,12,4),
+        "tai20a.dat" to intArrayOf(10,9,12,20,19,3,14,6,17,11,5,7,15,16,18,2,4,8,13,1),
         "els19.dat" to intArrayOf(9,10,7,18,14,19,13,17,6,11,4,5,12,8,15,16,1,2,3),
         "rou20.dat" to intArrayOf(1,19,2,14,10,16,11,20,9,5,7,4,8,18,15,3,12,17,13,6),
         "bur26a.dat" to intArrayOf(26, 15, 11, 7, 4, 12, 13, 2, 6, 18, 1, 5, 9, 21, 8, 14, 3, 20, 19, 25, 17, 10, 16, 24, 23, 22),
@@ -30,8 +31,8 @@ object OptimalSolutions {
         val optimalSolution: IntArray
         val optimalQAPSolution: QAPSolution
         if (instanceName == "lipa90b.dat") {
-            optimalQAPSolution = QAPOptimizer.generateRandomSolution(instance)
-            optimalQAPSolution.overrideCost(12490441)
+            optimalQAPSolution = QAPOptimizer.generateRandomSolution(instance).overrideCost(12490441)
+            println("Optimal solution for lipa90b.dat: ${optimalQAPSolution.solutionCost}")
         } else {
             optimalSolution = getPermutation(instanceName)
             optimalQAPSolution = QAPSolution(instance, optimalSolution)

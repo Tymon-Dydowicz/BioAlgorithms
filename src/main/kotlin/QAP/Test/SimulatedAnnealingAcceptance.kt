@@ -10,7 +10,7 @@ import QAP.SA.TemperatureWrapper
 import org.slf4j.LoggerFactory
 
 class SimulatedAnnealingAcceptance(
-    private val temperatureWrapper: TemperatureWrapper,
+    val temperatureWrapper: TemperatureWrapper,
     private val reheatingSchedule: IReheatingSchedule,
     private val coolingSchedule: ICoolingSchedule
 ): IAcceptanceCriterion {
@@ -31,7 +31,7 @@ class SimulatedAnnealingAcceptance(
             evaluations++
 
             if (delta < 0) {
-                logger.info("Accepted improving move with delta: $delta, temperature: $temperature")
+                logger.trace("Accepted improving move with delta: $delta, temperature: $temperature")
                 bestMove = move
                 bestCost = delta
                 algorithmState.iterationsWithoutImprovement = 0
@@ -39,7 +39,7 @@ class SimulatedAnnealingAcceptance(
             } else {
                 val acceptanceProbability = Math.exp(-delta / temperature)
                 if (Math.random() < acceptanceProbability) {
-                    logger.info("Accepted deteriorating move with delta: $delta, temperature: $temperature")
+                    logger.trace("Accepted deteriorating move with delta: $delta, temperature: $temperature")
                     bestMove = move
                     bestCost = delta
                     algorithmState.iterationsWithoutImprovement++
@@ -50,7 +50,7 @@ class SimulatedAnnealingAcceptance(
 
         if (reheatingSchedule.shouldReheat(algorithmState.iteration, temperature, bestCost.toDouble())) {
             temperatureWrapper.currentTemperature = reheatingSchedule.reheat(temperatureWrapper.initialTemperature, temperature)
-        } else {
+        } else if (coolingSchedule.shouldCool(algorithmState.iteration, temperature)){
             temperatureWrapper.currentTemperature = coolingSchedule.cool(temperature)
         }
 

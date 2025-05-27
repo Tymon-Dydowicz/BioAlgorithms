@@ -9,6 +9,7 @@ class SimilarityAnalysisReport private constructor(override val instanceName: St
     val hammingSimilarity: MutableList<Double> = mutableListOf()
     val cosineSimilarity: MutableList<Double> = mutableListOf()
     val solutionCosts: MutableList<Int> = mutableListOf()
+    val similarityToEachOther: MutableList<Double> = mutableListOf()
     lateinit var optimalSolution: QAPSolution
 
     constructor(instanceName: String, results: List<OptimizationResult>, optimalSolution: QAPSolution) : this(instanceName) {
@@ -22,6 +23,15 @@ class SimilarityAnalysisReport private constructor(override val instanceName: St
             hammingSimilarity.add(QAPSolutionManager.calculateHammingSimilarity(result.bestSolution!!, optimalSolution))
             cosineSimilarity.add(QAPSolutionManager.calculateCosineSimilarity(result.bestSolution!!, optimalSolution))
             solutionCosts.add(result.bestSolution!!.solutionCost)
+
+            var similaritySum = 0.0
+            for (subResult in results) {
+                val similarity = QAPSolutionManager.calculateHammingSimilarity(result.bestSolution!!, subResult.bestSolution!!)
+                similaritySum += similarity
+            }
+
+            val averageSimilarity = similaritySum / (results.size - 1)
+            similarityToEachOther.add(averageSimilarity)
         }
     }
 
@@ -47,9 +57,9 @@ class SimilarityAnalysisReport private constructor(override val instanceName: St
     override fun exportToCSV(filePath: String) {
         val file = java.io.File(filePath)
         file.printWriter().use { out ->
-            out.println("HammingDistance,HammingSimilarity,CosineSimilarity,Cost,OptimalCost")
+            out.println("HammingDistance,HammingSimilarity,CosineSimilarity,SimilarityToEachother,Cost,OptimalCost")
             for (i in hammingDistance.indices) {
-                out.println("${hammingDistance[i]},${hammingSimilarity[i]},${cosineSimilarity[i]},${solutionCosts[i]},${optimalSolution.solutionCost}")
+                out.println("${hammingDistance[i]},${hammingSimilarity[i]},${cosineSimilarity[i]},${similarityToEachOther[i]},${solutionCosts[i]},${optimalSolution.solutionCost}")
             }
         }
     }

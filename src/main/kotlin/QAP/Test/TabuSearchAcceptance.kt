@@ -4,16 +4,14 @@ import LocalSearch.IAcceptanceCriterion
 import LocalSearch.LocalSearchState
 import LocalSearch.IMove
 import LocalSearch.INeighborhoodExplorer
-import QAP.TabuSearch.IAspirationCriterion
-import QAP.TabuSearch.IMoveFeatureExtractor
-import QAP.TabuSearch.ITabuList
-import QAP.TabuSearch.ITabuTenureSchedule
+import QAP.TabuSearch.*
 import org.slf4j.LoggerFactory
 
 class TabuSearchAcceptance(
-    private val tabuList: ITabuList,
+    val tabuList: ITabuList,
     private val aspirationCriterion: IAspirationCriterion,
-    private val tenureSchedule: ITabuTenureSchedule
+    private val tenureSchedule: ITabuTenureSchedule,
+    private val candidateSelector: ICandidateSelector = ICandidateSelector.All()
 ) : IAcceptanceCriterion {
     private val logger = LoggerFactory.getLogger(TabuSearchAcceptance::class.java)
 
@@ -25,9 +23,11 @@ class TabuSearchAcceptance(
         var evaluations = 0
         var bestMove: IMove? = null
         var bestDelta = Int.MAX_VALUE
-
         val currentTenure = tenureSchedule.calculateTenure(algorithmState)
 
+//        val (candidateMoves, evaluations) = candidateSelector.selectCandidates(moves, algorithmState, explorer)
+//        for (move in candidateMoves) {
+//            val delta = move.delta!! // Use the pre-calculated delta
         for (move in moves) {
             val delta = explorer.calculateDelta(algorithmState.currentSolution, move)
             evaluations++
@@ -50,7 +50,7 @@ class TabuSearchAcceptance(
             val isImproving = algorithmState.currentSolution.solutionCost + bestDelta < algorithmState.bestSolutionCost
             tenureSchedule.notifyMoveSelected(bestDelta, isImproving)
 
-            logger.info("Selected move with delta: $bestDelta, tabu list size: ${tabuList.getTabuListSize()}")
+            logger.trace("Selected move with delta: $bestDelta, tabu list size: ${tabuList.getTabuListSize()}")
         } else {
             logger.info("No valid move found - all moves are tabu and don't pass aspiration")
         }
