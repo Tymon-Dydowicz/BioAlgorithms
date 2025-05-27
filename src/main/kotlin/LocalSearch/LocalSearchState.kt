@@ -9,8 +9,8 @@ data class LocalSearchState(
     var bestSolution: QAPSolution,
     var bestSolutionCost: Int,
     var iteration: Int = 0,
-    val startTime: Long = System.currentTimeMillis(),
-    var lastImprovement: Long = System.currentTimeMillis(),
+    val startTime: Long = System.nanoTime(),
+    var lastImprovement: Long = System.nanoTime(),
     var iterationsWithoutImprovement: Int = 0,
     var evaluatedSolutions: Int = 0,
     var temperature: Double = Double.MAX_VALUE,
@@ -20,6 +20,6 @@ data class LocalSearchState(
     //TODO Extend this state so that i can apply intesification/diversification strategies?
 ) {
     override fun toString(): String {
-        return "Iteration: $iteration, Current Solution Cost: ${currentSolution.solutionCost}, Best Solution Cost: $bestSolutionCost, Evaluated Solutions: $evaluatedSolutions, Time Elapsed: ${System.currentTimeMillis() - startTime} ms, $temperature"
+        return "Iteration: $iteration, Current Solution Cost: ${currentSolution.solutionCost}, Best Solution Cost: $bestSolutionCost, Evaluated Solutions: $evaluatedSolutions, Time Elapsed: ${System.nanoTime() - startTime} ms, $temperature"
     }
 }

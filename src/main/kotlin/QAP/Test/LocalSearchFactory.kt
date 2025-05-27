@@ -9,7 +9,7 @@ object LocalSearchFactory {
             if (heuristicInitial) HeuristicSolutionGenerator() else RandomSolutionGenerator(),
             SwapNeighborhoodExplorer(),
             GreedyAcceptance(),
-            IStoppingCriterion.maxRuntime(maxTime),
+            IStoppingCriterion.maxRuntimeMs(maxTime),
         )
     }
 
@@ -19,7 +19,7 @@ object LocalSearchFactory {
             if (heuristicInitial) HeuristicSolutionGenerator() else RandomSolutionGenerator(),
             SwapNeighborhoodExplorer(),
             SteepestAcceptance(),
-            IStoppingCriterion.maxRuntime(maxTime),
+            IStoppingCriterion.maxRuntimeMs(maxTime),
         )
     }
 }

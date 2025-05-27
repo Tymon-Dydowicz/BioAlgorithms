@@ -20,8 +20,12 @@ fun interface IStoppingCriterion {
             return IStoppingCriterion { state, _ -> state.iteration >= maxIterations }
         }
 
-        fun maxRuntime(maxRuntimeMs: Long): IStoppingCriterion {
-            return IStoppingCriterion { state, currentTime -> currentTime - state.startTime >= maxRuntimeMs }
+        fun maxRuntimeNs(maxRuntimeNs: Long): IStoppingCriterion {
+            return IStoppingCriterion { state, currentTime -> currentTime - state.startTime >= maxRuntimeNs }
+        }
+
+        fun maxRuntimeMs(maxRuntimeMs: Long): IStoppingCriterion {
+            return IStoppingCriterion { state, currentTime -> currentTime - state.startTime >= maxRuntimeMs * 1_000_000 }
         }
 
         fun maxStagnationTime(maxStagnationMs: Long): IStoppingCriterion {
@@ -42,6 +46,10 @@ fun interface IStoppingCriterion {
 
         fun maxEvaluations(maxEvals: Int): IStoppingCriterion {
             return IStoppingCriterion { state, _ -> state.evaluatedSolutions >= maxEvals }
+        }
+
+        fun maxIterationsWithoutImprovement(maxIterationsWithoutImprovement: Int): IStoppingCriterion {
+            return IStoppingCriterion { state, _ -> state.iterationsWithoutImprovement >= maxIterationsWithoutImprovement }
         }
     }
 }

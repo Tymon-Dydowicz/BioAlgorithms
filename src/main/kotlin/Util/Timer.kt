@@ -8,13 +8,13 @@ object Timer {
     }
 
     fun calculateExectuionTime(block: () -> Unit, timePrecision: Double, executionsPrecision: Int): TimeResult {
-        val startTime = System.currentTimeMillis()
+        val startTime = System.nanoTime()
         var counter = 0
-        while (System.currentTimeMillis() - startTime < timePrecision * 1000 && counter <= executionsPrecision) {
+        while (System.nanoTime() - startTime < timePrecision * 1_000_000_000 && counter <= executionsPrecision) {
             block()
             counter++
         }
-        val totalTime = System.currentTimeMillis() - startTime
+        val totalTime = System.nanoTime() - startTime
 
         return TimeResult(totalTime, totalTime/counter, counter)
     }

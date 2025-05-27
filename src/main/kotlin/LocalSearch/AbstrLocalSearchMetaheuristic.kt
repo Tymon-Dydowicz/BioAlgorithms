@@ -1,6 +1,8 @@
 package LocalSearch
 
 import QAP.QAPInstance
+import QAP.Test.SimulatedAnnealingAcceptance
+import QAP.Test.TabuSearchAcceptance
 import Results.OptimizationResult
 import org.slf4j.LoggerFactory
 
@@ -8,15 +10,17 @@ import org.slf4j.LoggerFactory
 abstract class AbstrLocalSearchMetaheuristic(
     protected val solutionGenerator: ISolutionGenerator,
     protected val neighborhoodExplorer: INeighborhoodExplorer,
-    protected val IAcceptanceCriterion: IAcceptanceCriterion,
+    protected val acceptanceCriterion: IAcceptanceCriterion,
     protected val stoppingCriterion: IStoppingCriterion,
     protected val perturbation: IPerturbation,
 ) {
     private val logger = LoggerFactory.getLogger(AbstrLocalSearchMetaheuristic::class.java)
 
     fun solve(instance: QAPInstance): OptimizationResult {
+        // TODO Extend it to faciliate all LS variants
+        // TODO Add RestartsStrategy, IntensificationStatrategy, DiversificationStrategy, CandidateSelection and SearchMemory
 
-        val result = OptimizationResult(getAlgorithmDescription())
+        val result = OptimizationResult(getAlgorithmDescription(), instance.instanceSize)
         result.optimum = instance.optimalSolution!!.solutionCost
 
         var currentSolution = solutionGenerator.generate(instance)
@@ -24,40 +28,40 @@ abstract class AbstrLocalSearchMetaheuristic(
 
         val algorithmState = LocalSearchState(instance, currentSolution, currentSolution, currentSolution.solutionCost)
 
-        result.addStep(currentSolution.solutionCost)
+        result.addStep(currentSolution.solutionCost, System.nanoTime() - algorithmState.startTime)
         result.increaseEvaluatedSolutions(1)
+        result.algorithmLoops++
         algorithmState.evaluatedSolutions++
 
-        while (!stoppingCriterion.shouldStop(
-                algorithmState,
-                System.currentTimeMillis(),
-            )) {
-
+        while (!stoppingCriterion.shouldStop(algorithmState, System.nanoTime())) {
             algorithmState.iteration++
-            logger.info(algorithmState.toString())
+            logger.trace(algorithmState.toString())
 
             val moves = neighborhoodExplorer.generateMoves(algorithmState.currentSolution)
 
-            val (evaluations, selectedMove) = IAcceptanceCriterion.selectNextMove(
-                algorithmState,
-                moves,
-                neighborhoodExplorer,
+            val (evaluations, selectedMove) = acceptanceCriterion.selectNextMove(
+                algorithmState, moves, neighborhoodExplorer,
             )
 
             result.increaseEvaluatedSolutions(evaluations)
+            result.algorithmLoops++
             algorithmState.evaluatedSolutions += evaluations
 
             if (selectedMove != null) {
                 currentSolution = neighborhoodExplorer.applyMove(algorithmState.currentSolution, selectedMove)
-                result.addStep(currentSolution.solutionCost)
-
                 algorithmState.currentSolution = currentSolution
+                // TODO Think about pos/neg steps here?
+                result.totalSteps++
 
                 if (currentSolution.solutionCost < algorithmState.bestSolutionCost) {
-                    // TODO the last improvement should be a little bit elsewhere
+                    // TODO Rethink if this is a correct spot
+                    result.addStep(currentSolution.solutionCost, System.nanoTime() - algorithmState.startTime)
                     algorithmState.bestSolution = currentSolution
                     algorithmState.bestSolutionCost = currentSolution.solutionCost
-                    algorithmState.lastImprovement = System.currentTimeMillis()
+                    algorithmState.lastImprovement = System.nanoTime()
+                    algorithmState.iterationsWithoutImprovement = 0
+                } else {
+                    algorithmState.iterationsWithoutImprovement++
                 }
             } else if (perturbation is IPerturbation.NoPerturbation) {
                 break
@@ -70,15 +74,22 @@ abstract class AbstrLocalSearchMetaheuristic(
             }
         }
 
-        result.setRuntimeIn(System.currentTimeMillis() - algorithmState.startTime)
-        result.setLastImprovementIn(System.currentTimeMillis() - algorithmState.lastImprovement)
-        result.addStep(algorithmState.bestSolutionCost)
+        result.setRuntimeIn(System.nanoTime() - algorithmState.startTime)
+        result.setLastImprovementIn(System.nanoTime() - algorithmState.lastImprovement)
+        result.addStep(algorithmState.bestSolutionCost, System.nanoTime() - algorithmState.startTime)
         result.setBestSolutionIn(algorithmState.bestSolution)
+
+        // TODO Remove this because unclean, deal with it by adding copying when initializing config
+        if (acceptanceCriterion is SimulatedAnnealingAcceptance) {
+            acceptanceCriterion.temperatureWrapper.reset()
+        } else if (acceptanceCriterion is TabuSearchAcceptance) {
+            acceptanceCriterion.tabuList.clear()
+        }
 
         return result
     }
 
     fun getAlgorithmDescription(): String {
-        return "${solutionGenerator.getName()}${neighborhoodExplorer.getName()}${IAcceptanceCriterion.getName()}"
+        return "${solutionGenerator.getName()}${neighborhoodExplorer.getName()}${acceptanceCriterion.getName()}"
     }
 }

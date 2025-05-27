@@ -2,6 +2,7 @@ package QAP
 
 import Results.OptimizationResult
 import Enums.AlgorithmType
+import QAP.Test.SwapNeighborhoodExplorer
 import Util.Randomizer
 import java.util.*
 import java.util.concurrent.Executors
@@ -85,81 +86,92 @@ object QAPOptimizer {
     }
 
     fun performRandomWalk(instance: QAPInstance, time: Long): OptimizationResult {
-        val result = OptimizationResult("RandomWalk")
+        val result = OptimizationResult("RandomWalk", instance.instanceSize)
+        result.optimum = instance.optimalSolution!!.solutionCost
 
         var currentSolution = generateRandomSolution(instance)
         result.initialSolution = currentSolution
 
         var bestSolution = currentSolution
         var bestCost = currentSolution.solutionCost
-        val endTime = System.currentTimeMillis() + time
-        var improvementTimer = System.currentTimeMillis()
+        val endTime = System.nanoTime() + time
+        var improvementTimer = System.nanoTime()
 
-        result.addStep(bestSolution.solutionCost)
+        result.addStep(bestSolution.solutionCost, System.nanoTime() - endTime + time)
         result.increaseEvaluatedSolutions(1)
+        result.algorithmLoops++
+        val neighborhoodExplorer = SwapNeighborhoodExplorer()
+        val possibleMoves = neighborhoodExplorer.generateMoves(currentSolution)
 
-        while (System.currentTimeMillis() < endTime) {
-            val neighoorhood = QAPNeighboorManager.generateNeighboorhood(currentSolution)
-            val newSolution = neighoorhood.random().second
-            val newCost = newSolution.solutionCost
+        while (System.nanoTime() < endTime) {
+//            val neighoorhood = QAPNeighboorManager.generateNeighboorhood(currentSolution)
+            val selectedMove = possibleMoves.random()
+            selectedMove.delta = neighborhoodExplorer.calculateDelta(currentSolution, selectedMove)
+            val newSolution = neighborhoodExplorer.applyMove(currentSolution, selectedMove)
 
-            result.addStep(newSolution.solutionCost)
             result.increaseEvaluatedSolutions(1)
+            result.algorithmLoops++
 
-            if (newCost < bestCost) {
+            if (newSolution.solutionCost < bestCost) {
+                result.addStep(newSolution.solutionCost, System.nanoTime() - endTime + time)
                 bestSolution = newSolution
-                bestCost = newCost
-                improvementTimer = System.currentTimeMillis()
+                bestCost = newSolution.solutionCost
+                improvementTimer = System.nanoTime()
             }
         }
 
-        result.setRuntimeIn(System.currentTimeMillis() - endTime + time)
-        result.setLastImprovementIn(System.currentTimeMillis() - improvementTimer)
+        result.setRuntimeIn(System.nanoTime() - endTime + time)
+        result.setLastImprovementIn(System.nanoTime() - improvementTimer)
         result.setBestSolutionIn(bestSolution)
 
         return result
     }
 
     fun performRandomSearch(instance: QAPInstance, time: Long): OptimizationResult {
-        val result = OptimizationResult("RandomSearch")
+        val result = OptimizationResult("RandomSearch", instance.instanceSize)
+        result.optimum = instance.optimalSolution!!.solutionCost
 
         var bestSolution = generateRandomSolution(instance)
+        result.initialSolution = bestSolution
 
         var bestCost = bestSolution.solutionCost
-        val endTime = System.currentTimeMillis() + time
-        var improvementTimer = System.currentTimeMillis()
+        val endTime = System.nanoTime() + time
+        var improvementTimer = System.nanoTime()
 
-        result.addStep(bestSolution.solutionCost)
+        result.addStep(bestSolution.solutionCost, System.nanoTime() - endTime + time)
         result.increaseEvaluatedSolutions(1)
+        result.algorithmLoops++
 
-        while (System.currentTimeMillis() < endTime) {
+        while (System.nanoTime() < endTime) {
             val newSolution = generateRandomSolution(instance)
             val newCost = newSolution.solutionCost
 
-            result.addStep(newSolution.solutionCost)
             result.increaseEvaluatedSolutions(1)
+            result.algorithmLoops++
 
             if (newCost < bestCost) {
+                result.addStep(newSolution.solutionCost,System.nanoTime() - endTime + time)
                 bestSolution = newSolution
                 bestCost = newCost
-                improvementTimer = System.currentTimeMillis()
+                improvementTimer = System.nanoTime()
             }
         }
 
-        result.setRuntimeIn(System.currentTimeMillis() - endTime + time)
-        result.setLastImprovementIn(System.currentTimeMillis() - improvementTimer)
+        result.setRuntimeIn(System.nanoTime() - endTime + time)
+        result.setLastImprovementIn(System.nanoTime() - improvementTimer)
         result.setBestSolutionIn(bestSolution)
 
         return result
     }
 
     fun performHeurstic(instance: QAPInstance, time: Long): OptimizationResult {
-        val result = OptimizationResult("Heuristic")
+        val result = OptimizationResult("Heuristic", instance.instanceSize)
+        result.optimum = instance.optimalSolution!!.solutionCost
 
         var solution = mutableListOf<Int>()
         var locations = MutableList(instance.instanceSize) { it }
         val intialFacility = Randomizer.getRandomIndex(instance.instanceSize)
-        val endTime = System.currentTimeMillis() + time
+        val endTime = System.nanoTime() + time
 
         solution.add(intialFacility)
         locations.remove(intialFacility)
@@ -171,9 +183,10 @@ object QAPOptimizer {
             locations.remove(nextFacility)
         }
 
-        result.setRuntimeIn(System.currentTimeMillis() - endTime + time)
-        result.initialSolution = QAPSolution(instance, solution.toIntArray())
-        result.bestSolution = result.initialSolution
+        result.setRuntimeIn(System.nanoTime() - endTime + time)
+        val heurSolution = QAPSolution(instance, solution.toIntArray())
+        result.initialSolution = heurSolution
+        result.setBestSolutionIn(heurSolution)
 
         return result
     }
@@ -215,16 +228,16 @@ object QAPOptimizer {
     }
 
     private fun performLocalSearchImpl(instance: QAPInstance, time: Long, startMethod: (QAPInstance) -> QAPSolution, selectionMethod: (QAPSolution) -> Pair<Int, QAPSolution>): OptimizationResult {
-        val result = OptimizationResult("RandomSearch")
+        val result = OptimizationResult("RandomSearch", instance.instanceSize)
 
         var solution = startMethod(instance)
         result.initialSolution = solution
-        val endTime = System.currentTimeMillis() + time
+        val endTime = System.nanoTime() + time
 
-        result.addStep(solution.solutionCost)
+        result.addStep(solution.solutionCost, System.nanoTime() - endTime + time)
         result.increaseEvaluatedSolutions(1)
 
-        while (System.currentTimeMillis() < endTime) {
+        while (System.nanoTime() < endTime) {
             val (evauluations, bestNeighboor) = selectionMethod(solution)
 
 
@@ -234,12 +247,12 @@ object QAPOptimizer {
                 break
             } else {
                 solution = bestNeighboor
-                result.addStep(bestNeighboor.solutionCost)
+                result.addStep(bestNeighboor.solutionCost, System.nanoTime() - endTime + time)
                 result.increaseEvaluatedSolutions(evauluations)
             }
         }
 
-        result.setRuntimeIn(System.currentTimeMillis() - endTime + time)
+        result.setRuntimeIn(System.nanoTime() - endTime + time)
         result.setBestSolutionIn(solution)
 
         return result
