@@ -1,23 +1,36 @@
 package LocalSearch
 
 import Enums.AlgorithmType
-import QAP.Test.GreedyAcceptance
-import QAP.Test.HeuristicSolutionGenerator
-import QAP.Test.RandomSolutionGenerator
-import QAP.Test.SteepestAcceptance
+import QAP.Test.*
 
-data class LocalSearchConfig(
+class LocalSearchConfig private constructor(
     val solutionGenerator: ISolutionGenerator,
     val neighborhoodExplorer: INeighborhoodExplorer,
-    val IAcceptanceCriterion: IAcceptanceCriterion,
+    val acceptanceCriterionProvider: CloneCriterionProvider,
     val stoppingCriterion: IStoppingCriterion,
     val perturbation: IPerturbation = IPerturbation.NoPerturbation(),
+    private val acceptanceCriterion: IAcceptanceCriterion,
 ) {
+    constructor(
+        solutionGenerator: ISolutionGenerator,
+        neighborhoodExplorer: INeighborhoodExplorer,
+        acceptanceCriterion: IAcceptanceCriterion,
+        stoppingCriterion: IStoppingCriterion,
+        perturbation: IPerturbation = IPerturbation.NoPerturbation(),
+    ) : this(
+        solutionGenerator,
+        neighborhoodExplorer,
+        CloneCriterionProvider(acceptanceCriterion),
+        stoppingCriterion,
+        perturbation,
+        acceptanceCriterion,
+    )
+
     fun createAlgorithm(): AbstrLocalSearchMetaheuristic {
         return object : AbstrLocalSearchMetaheuristic(
             solutionGenerator,
             neighborhoodExplorer,
-            IAcceptanceCriterion,
+            acceptanceCriterionProvider.create(),
             stoppingCriterion,
             perturbation,
         ) {}
@@ -28,16 +41,19 @@ data class LocalSearchConfig(
         // This is a simplified example - you'd need to map all combinations
         return when {
             solutionGenerator is RandomSolutionGenerator &&
-                    IAcceptanceCriterion is GreedyAcceptance -> AlgorithmType.RANDOM_GREEDY_LOCAL_SEARCH
+                    acceptanceCriterion is GreedyAcceptance -> AlgorithmType.RANDOM_GREEDY_LOCAL_SEARCH
 
             solutionGenerator is RandomSolutionGenerator &&
-                    IAcceptanceCriterion is SteepestAcceptance -> AlgorithmType.RANDOM_STEEPEST_LOCAL_SEARCH
+                    acceptanceCriterion is SteepestAcceptance -> AlgorithmType.RANDOM_STEEPEST_LOCAL_SEARCH
 
             solutionGenerator is HeuristicSolutionGenerator &&
-                    IAcceptanceCriterion is GreedyAcceptance -> AlgorithmType.HEURISTIC_GREEDY_LOCAL_SEARCH
+                    acceptanceCriterion is GreedyAcceptance -> AlgorithmType.HEURISTIC_GREEDY_LOCAL_SEARCH
 
             solutionGenerator is HeuristicSolutionGenerator &&
-                    IAcceptanceCriterion is SteepestAcceptance -> AlgorithmType.HEURISTIC_STEEPEST_LOCAL_SEARCH
+                    acceptanceCriterion is SteepestAcceptance -> AlgorithmType.HEURISTIC_STEEPEST_LOCAL_SEARCH
+
+            acceptanceCriterion is SimulatedAnnealingAcceptance -> AlgorithmType.SIMULATED_ANNEALING
+            acceptanceCriterion is TabuSearchAcceptance -> AlgorithmType.TABU_SEARCH
 
             // Uncomment and extend as needed:
             // acceptanceCriterion is SimulatedAnnealingAcceptance -> AlgorithmType.SIMULATED_ANNEALING

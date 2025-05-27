@@ -1,8 +1,10 @@
 package QAP.TabuSearch
 
 import LocalSearch.IMove
+import LocalSearch.Resettable
+import LocalSearch.Stateful
 
-interface ITabuList {
+interface ITabuList : Stateful, Resettable {
     fun isTabu(move: IMove, currentIteration: Int): Boolean
     fun addMove(move: IMove, currentIteration: Int, tenure: Int)
     fun cleanExpired(currentIteration: Int)
@@ -43,6 +45,14 @@ interface ITabuList {
 
         override fun getTabuList(): List<Pair<String, Int>> {
             return tabuMoves.map { (feature, expiration) -> Pair(feature, expiration) }
+        }
+
+        override fun clone(): Stateful {
+            return AttributeBasedTabuList(featureExtractor)
+        }
+
+        override fun reset() {
+            clear()
         }
     }
 }

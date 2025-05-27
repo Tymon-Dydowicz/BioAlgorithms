@@ -37,8 +37,7 @@ fun runOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean = 
     val runner = OptimizationRunner(config)
 
     config.executions.add(runner.startTime)
-
-    val algorithm = config.localSearchConfig.createAlgorithm()
+//    val algorithm = config.localSearchConfig.createAlgorithm()
     config.instance.describe()
 
     val results = if (config.multiStarts == null) {
@@ -46,6 +45,7 @@ fun runOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean = 
 
         List(config.algorithmRuns) { i ->
             printProgress(i, config.algorithmRuns)
+            val algorithm = config.localSearchConfig.createAlgorithm()
             algorithm.solve(config.instance)
         }
     } else {
@@ -53,6 +53,8 @@ fun runOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean = 
 
         List(config.algorithmRuns) { i ->
             printProgress(i, config.algorithmRuns)
+
+            val algorithm = config.localSearchConfig.createAlgorithm()
 
             val multiStartResults = runMultiStartOptimization(
                 algorithm,
@@ -109,7 +111,7 @@ private fun printProgress(current: Int, total: Int) {
     val barLength = 20
     val completed = percent * barLength / 100
     val progressBar = "[" + "#".repeat(completed) + ".".repeat(barLength - completed) + "]"
-    print("\rProgress: $progressBar $percent%")
+    print("\rProgress: $progressBar $percent%\n")
     if (current + 1 == total) println()
 }
 
