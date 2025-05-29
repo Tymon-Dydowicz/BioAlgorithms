@@ -1,27 +1,31 @@
 package LocalSearch
 
 import Enums.AlgorithmType
+import QAP.TabuSearch.ICandidateSelector
 import QAP.Test.*
 
 class LocalSearchConfig private constructor(
     val solutionGenerator: ISolutionGenerator,
-    val neighborhoodExplorer: INeighborhoodExplorer,
+    val neighborhoodExplorer: AbstrNeighborhoodExplorer,
     val acceptanceCriterionProvider: CloneCriterionProvider,
     val stoppingCriterion: IStoppingCriterion,
+    val candidateSelector: ICandidateSelector = ICandidateSelector.All(),
     val perturbation: IPerturbation = IPerturbation.NoPerturbation(),
     private val acceptanceCriterion: IAcceptanceCriterion,
 ) {
     constructor(
         solutionGenerator: ISolutionGenerator,
-        neighborhoodExplorer: INeighborhoodExplorer,
+        neighborhoodExplorer: AbstrNeighborhoodExplorer,
         acceptanceCriterion: IAcceptanceCriterion,
         stoppingCriterion: IStoppingCriterion,
+        candidateSelector: ICandidateSelector = ICandidateSelector.All(),
         perturbation: IPerturbation = IPerturbation.NoPerturbation(),
     ) : this(
         solutionGenerator,
         neighborhoodExplorer,
         CloneCriterionProvider(acceptanceCriterion),
         stoppingCriterion,
+        candidateSelector,
         perturbation,
         acceptanceCriterion,
     )
@@ -32,6 +36,7 @@ class LocalSearchConfig private constructor(
             neighborhoodExplorer,
             acceptanceCriterionProvider.create(),
             stoppingCriterion,
+            candidateSelector,
             perturbation,
         ) {}
     }

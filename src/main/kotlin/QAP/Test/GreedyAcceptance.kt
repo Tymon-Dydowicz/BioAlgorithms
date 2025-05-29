@@ -1,26 +1,21 @@
 package QAP.Test
 
-import LocalSearch.IAcceptanceCriterion
-import LocalSearch.LocalSearchState
-import LocalSearch.IMove
-import LocalSearch.INeighborhoodExplorer
+import LocalSearch.*
 
 class GreedyAcceptance : IAcceptanceCriterion {
     override fun selectNextMove(
         algorithmState: LocalSearchState,
-        moves: List<IMove>,
+        lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer,
-    ): Pair<Int, IMove?> {
-        var evaluations = 0
-        for (move in moves) {
-            val delta = explorer.calculateDelta(algorithmState.currentSolution, move)
-            evaluations++
+    ): IMove? {
+        for (move in lazyEvaluatedMoves) {
+            val delta = move.delta // Lazy move evaluates the delta here
             if (delta < 0) {
-                return Pair(evaluations, move)
+                return move.move
             }
         }
 
-        return Pair(evaluations, null) // No move selected, return null
+        return null // No move selected, return null
     }
 
     override fun getName(): String {

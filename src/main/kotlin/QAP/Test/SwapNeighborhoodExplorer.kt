@@ -1,10 +1,9 @@
 package QAP.Test
 
-import LocalSearch.IMove
-import LocalSearch.INeighborhoodExplorer
+import LocalSearch.*
 import QAP.QAPSolution
 
-class SwapNeighborhoodExplorer: INeighborhoodExplorer {
+class SwapNeighborhoodExplorer: AbstrNeighborhoodExplorer() {
     override fun generateMoves(solution: QAPSolution): List<IMove> {
         val moves = mutableListOf<SwapMove>()
         for (i in 0 until solution.instance.instanceSize) {

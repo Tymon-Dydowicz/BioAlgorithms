@@ -2,6 +2,7 @@ package QAP
 
 import Results.OptimizationResult
 import Enums.AlgorithmType
+import LocalSearch.EvaluationsCounter
 import QAP.Test.SwapNeighborhoodExplorer
 import Util.Randomizer
 import java.util.*
@@ -86,6 +87,9 @@ object QAPOptimizer {
     }
 
     fun performRandomWalk(instance: QAPInstance, time: Long): OptimizationResult {
+        // TODO rework this whole part
+        val counter = EvaluationsCounter()
+
         val result = OptimizationResult("RandomWalk", instance.instanceSize)
         result.optimum = instance.optimalSolution!!.solutionCost
 
@@ -101,13 +105,13 @@ object QAPOptimizer {
         result.increaseEvaluatedSolutions(1)
         result.algorithmLoops++
         val neighborhoodExplorer = SwapNeighborhoodExplorer()
-        val possibleMoves = neighborhoodExplorer.generateMoves(currentSolution)
+        val lazyMoves = neighborhoodExplorer.generateLazyMoves(currentSolution, counter)
 
         while (System.nanoTime() < endTime) {
 //            val neighoorhood = QAPNeighboorManager.generateNeighboorhood(currentSolution)
-            val selectedMove = possibleMoves.random()
-            selectedMove.delta = neighborhoodExplorer.calculateDelta(currentSolution, selectedMove)
-            val newSolution = neighborhoodExplorer.applyMove(currentSolution, selectedMove)
+            val selectedMove = lazyMoves.random()
+//            selectedMove.delta = neighborhoodExplorer.calculateDelta(currentSolution, selectedMove)
+            val newSolution = neighborhoodExplorer.applyMove(currentSolution, selectedMove.move)
 
             result.increaseEvaluatedSolutions(1)
             result.algorithmLoops++
@@ -128,6 +132,7 @@ object QAPOptimizer {
     }
 
     fun performRandomSearch(instance: QAPInstance, time: Long): OptimizationResult {
+        // TODO rework this whole part
         val result = OptimizationResult("RandomSearch", instance.instanceSize)
         result.optimum = instance.optimalSolution!!.solutionCost
 
@@ -165,11 +170,12 @@ object QAPOptimizer {
     }
 
     fun performHeurstic(instance: QAPInstance, time: Long): OptimizationResult {
+        // TODO rework this whole part
         val result = OptimizationResult("Heuristic", instance.instanceSize)
         result.optimum = instance.optimalSolution!!.solutionCost
 
-        var solution = mutableListOf<Int>()
-        var locations = MutableList(instance.instanceSize) { it }
+        val solution = mutableListOf<Int>()
+        val locations = MutableList(instance.instanceSize) { it }
         val intialFacility = Randomizer.getRandomIndex(instance.instanceSize)
         val endTime = System.nanoTime() + time
 

@@ -1,22 +1,18 @@
 package QAP.Test
 
-import LocalSearch.IAcceptanceCriterion
-import LocalSearch.LocalSearchState
-import LocalSearch.IMove
-import LocalSearch.INeighborhoodExplorer
+import LocalSearch.*
 
 class SteepestAcceptance : IAcceptanceCriterion {
     override fun selectNextMove(
         algorithmState: LocalSearchState,
-        moves: List<IMove>,
+        lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer,
-    ): Pair<Int, IMove?> {
-        var evaluations = 0
-        val bestMove = moves
-            .filter { explorer.calculateDelta(algorithmState.currentSolution, it) <= 0 }
-            .minByOrNull { explorer.calculateDelta(algorithmState.currentSolution, it) }
+    ): IMove? {
+        val bestMove = lazyEvaluatedMoves
+            .filter { it.delta < 0 } // Lazy move evaluates the delta here
+            .minByOrNull { it.delta } // Lazy move has the cached delta
 
-        return Pair(evaluations, bestMove)
+        return bestMove?.move
     }
 
     override fun getName(): String {

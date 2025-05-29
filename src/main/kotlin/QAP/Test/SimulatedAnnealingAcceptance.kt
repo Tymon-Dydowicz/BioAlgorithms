@@ -1,13 +1,11 @@
 package QAP.Test
 
-import LocalSearch.IAcceptanceCriterion
-import LocalSearch.LocalSearchState
-import LocalSearch.IMove
-import LocalSearch.INeighborhoodExplorer
+import LocalSearch.*
 import QAP.SA.ICoolingSchedule
 import QAP.SA.IReheatingSchedule
 import QAP.SA.TemperatureWrapper
 import org.slf4j.LoggerFactory
+import kotlin.math.exp
 
 class SimulatedAnnealingAcceptance(
     val temperatureWrapper: TemperatureWrapper,
@@ -18,29 +16,27 @@ class SimulatedAnnealingAcceptance(
 
     override fun selectNextMove(
         algorithmState: LocalSearchState,
-        moves: List<IMove>,
+        lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer,
-    ): Pair<Int, IMove?> {
-        var evaluations = 0
+    ): IMove? {
         val temperature = temperatureWrapper.currentTemperature
         var bestMove: IMove? = null
         var bestCost = Int.MAX_VALUE
 
-        for (move in moves) {
-            val delta = explorer.calculateDelta(algorithmState.currentSolution, move)
-            evaluations++
+        for (lazyMove in lazyEvaluatedMoves) {
+            val delta = lazyMove.delta //Lazy move evaluates the data here //explorer.calculateDelta(algorithmState.currentSolution, move)
 
             if (delta < 0) {
                 logger.trace("Accepted improving move with delta: $delta, temperature: $temperature")
-                bestMove = move
+                bestMove = lazyMove.move
                 bestCost = delta
                 algorithmState.iterationsWithoutImprovement = 0
                 break
             } else {
-                val acceptanceProbability = Math.exp(-delta / temperature)
+                val acceptanceProbability = exp(-delta / temperature)
                 if (Math.random() < acceptanceProbability) {
                     logger.trace("Accepted deteriorating move with delta: $delta, temperature: $temperature")
-                    bestMove = move
+                    bestMove = lazyMove.move
                     bestCost = delta
                     algorithmState.iterationsWithoutImprovement++
                     break
@@ -48,6 +44,7 @@ class SimulatedAnnealingAcceptance(
             }
         }
 
+        //TODO probably split into 2 ifs
         if (reheatingSchedule.shouldReheat(algorithmState.iteration, temperature, bestCost.toDouble())) {
             temperatureWrapper.currentTemperature = reheatingSchedule.reheat(temperatureWrapper.initialTemperature, temperature)
         } else if (coolingSchedule.shouldCool(algorithmState.iteration, temperature)){
@@ -56,7 +53,7 @@ class SimulatedAnnealingAcceptance(
 
         algorithmState.temperature = temperatureWrapper.currentTemperature
 
-        return Pair(evaluations, bestMove)
+        return bestMove
     }
 
     override fun getName(): String {

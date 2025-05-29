@@ -11,8 +11,8 @@ interface IAcceptanceCriterion {
     // Move-based version for efficiency
     fun selectNextMove(
         algorithmState: LocalSearchState,
-        moves: List<IMove>,
+        lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer,
-    ): Pair<Int, IMove?> // evaluations, selected move, resulting solution
+    ): IMove? // evaluations, selected move, resulting solution
     fun getName(): String
 }
