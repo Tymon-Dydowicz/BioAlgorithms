@@ -123,8 +123,6 @@ class AvgOptimizationResult(val name: String, private val results: List<Optimiza
 
     fun describe() {
         println("Method: $name (Averaged over ${results.size} runs)")
-        println("Runtime: $avgRuntime ± $stdDevRuntime ms")
-        println("Positive Steps: $avgPosSteps ± $stdDevPosSteps | Negative Steps: $avgNegSteps ± $stdDevNegSteps")
         println("Runtime: $avgRuntime ± $stdDevRuntime ns")
         println("Positive Steps: $avgPosSteps ± $stdDevPosSteps | Negative Steps: $avgNegSteps ± $stdDevNegSteps | Total Steps: $avgTotalSteps ± $stdDevTotalSteps")
         println("Best Solution Cost: $avgBestCost ± $stdDevBestCost")

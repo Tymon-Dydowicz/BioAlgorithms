@@ -31,7 +31,8 @@ object OptimalSolutions {
         val optimalSolution: IntArray
         val optimalQAPSolution: QAPSolution
         if (instanceName == "lipa90b.dat") {
-            optimalQAPSolution = QAPOptimizer.generateRandomSolution(instance).overrideCost(12490441)
+            optimalQAPSolution = QAPOptimizer.generateRandomSolution(instance)
+            optimalQAPSolution.overrideCost(12490441)
             println("Optimal solution for lipa90b.dat: ${optimalQAPSolution.solutionCost}")
         } else {
             optimalSolution = getPermutation(instanceName)

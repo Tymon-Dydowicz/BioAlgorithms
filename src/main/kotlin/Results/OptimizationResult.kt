@@ -22,7 +22,7 @@ class OptimizationResult(val name: String, val instanceSize: Int) {
         print(
             "-- Optimization Result | Size ($instanceSize)-- \n" +
                 "Method: $name \n" +
-                "Runtime: $runtime \n" +
+                "Runtime: $runtime ns\n" +
                 "Positive Steps $posSteps | Negative Steps $negSteps | Total Steps $totalSteps \n" +
                 "Initial Solution: ${initialSolution!!.solutionCost} \n" +
                 "Optimum: ${optimum} | ${bestSolution!!.solutionCost} :Best Solution cost \n" +
