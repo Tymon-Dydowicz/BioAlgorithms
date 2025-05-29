@@ -61,11 +61,11 @@ object QAPOptimizer {
         }
     }
 
-    fun generateRandomSolution(qap: QAPInstance): QAPSolution {
+    fun generateRandomSolution(qap: QAPInstance, overridenCost: Int? = null): QAPSolution {
         val locations = Array(qap.instanceSize) { it }
         val randomSolution = Randomizer.randomShuffle(locations)
 
-        return QAPSolution(qap, randomSolution.toIntArray())
+        return QAPSolution(qap, randomSolution.toIntArray(), overridenCost)
     }
 
     fun generateHeuristicSolution(instance: QAPInstance): QAPSolution {
@@ -111,7 +111,8 @@ object QAPOptimizer {
 //            val neighoorhood = QAPNeighboorManager.generateNeighboorhood(currentSolution)
             val selectedMove = lazyMoves.random()
 //            selectedMove.delta = neighborhoodExplorer.calculateDelta(currentSolution, selectedMove)
-            val newSolution = neighborhoodExplorer.applyMove(currentSolution, selectedMove.move)
+//            val newSolution = neighborhoodExplorer.applyMove(currentSolution, selectedMove.move)
+            val newSolution = selectedMove.applyTo(currentSolution)
 
             result.increaseEvaluatedSolutions(1)
             result.algorithmLoops++

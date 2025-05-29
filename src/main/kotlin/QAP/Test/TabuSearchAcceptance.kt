@@ -15,8 +15,8 @@ class TabuSearchAcceptance(
         algorithmState: LocalSearchState,
         lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer
-    ): IMove? {
-        var bestMove: IMove? = null
+    ): LazyEvaluatedMove? {
+        var bestMove: LazyEvaluatedMove? = null
         var bestDelta = Int.MAX_VALUE
         val currentTenure = tenureSchedule.calculateTenure(algorithmState)
 
@@ -29,13 +29,13 @@ class TabuSearchAcceptance(
             if (!isTabu || passesAspiration) {
                 if (delta < bestDelta) {
                     bestDelta = delta
-                    bestMove = lazyMove.move
+                    bestMove = lazyMove
                 }
             }
         }
 
         if (bestMove != null) {
-            tabuList.addMove(bestMove, algorithmState.iteration, currentTenure)
+            tabuList.addMove(bestMove.move, algorithmState.iteration, currentTenure)
             tabuList.cleanExpired(algorithmState.iteration)
 
             val isImproving = algorithmState.currentSolution.solutionCost + bestDelta < algorithmState.bestSolutionCost

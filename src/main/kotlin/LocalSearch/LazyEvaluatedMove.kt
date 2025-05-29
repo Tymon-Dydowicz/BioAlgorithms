@@ -1,5 +1,7 @@
 package LocalSearch
 
+import QAP.QAPSolution
+
 
 class LazyEvaluatedMove(
     val move: IMove,
@@ -9,5 +11,9 @@ class LazyEvaluatedMove(
     val delta: Int by lazy {
         evaluationsCounter.evaluations++
         deltaProvider() // .also { move.delta = it } TODO Rethink if the IMove should stay clean
+    }
+
+    fun applyTo(solution: QAPSolution): QAPSolution {
+        return move.applyToWithDelta(solution, delta)
     }
 }

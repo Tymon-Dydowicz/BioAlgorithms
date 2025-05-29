@@ -1,21 +1,18 @@
 package QAP
 
-class QAPSolution(val instance: QAPInstance, val solution: IntArray) {
+class QAPSolution(
+    val instance: QAPInstance,
+    val solution: IntArray,
+    providedCost: Int? = null
+    ) {
     // TODO Abstract the QAPSolution into a generic solution class
-    var solutionCost: Int
-
-    init {
-        this.solutionCost = QAPSolutionManager.calculateSolutionCost(instance, solution)
-    }
+    val solutionCost: Int = providedCost ?: QAPSolutionManager.calculateSolutionCost(instance, solution)
 
     fun describe() {
         println("Solution: " + solution.joinToString(" "))
         println("Solution cost: $solutionCost \n")
     }
 
-    fun overrideCost(newCost: Int) {
-        this.solutionCost = newCost
-    }
 
     fun swapElements(i: Int, j: Int) : QAPSolution{
         val newSolution = solution.copyOf()

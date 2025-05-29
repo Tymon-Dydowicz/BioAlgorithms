@@ -7,12 +7,12 @@ class SteepestAcceptance : IAcceptanceCriterion {
         algorithmState: LocalSearchState,
         lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer,
-    ): IMove? {
+    ): LazyEvaluatedMove? {
         val bestMove = lazyEvaluatedMoves
             .filter { it.delta < 0 } // Lazy move evaluates the delta here
             .minByOrNull { it.delta } // Lazy move has the cached delta
 
-        return bestMove?.move
+        return bestMove
     }
 
     override fun getName(): String {

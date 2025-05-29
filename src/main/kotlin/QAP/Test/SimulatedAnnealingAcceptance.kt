@@ -18,9 +18,9 @@ class SimulatedAnnealingAcceptance(
         algorithmState: LocalSearchState,
         lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer,
-    ): IMove? {
+    ): LazyEvaluatedMove? {
         val temperature = temperatureWrapper.currentTemperature
-        var bestMove: IMove? = null
+        var bestMove: LazyEvaluatedMove? = null
         var bestCost = Int.MAX_VALUE
 
         for (lazyMove in lazyEvaluatedMoves) {
@@ -28,7 +28,7 @@ class SimulatedAnnealingAcceptance(
 
             if (delta < 0) {
                 logger.trace("Accepted improving move with delta: $delta, temperature: $temperature")
-                bestMove = lazyMove.move
+                bestMove = lazyMove
                 bestCost = delta
                 algorithmState.iterationsWithoutImprovement = 0
                 break
@@ -36,7 +36,7 @@ class SimulatedAnnealingAcceptance(
                 val acceptanceProbability = exp(-delta / temperature)
                 if (Math.random() < acceptanceProbability) {
                     logger.trace("Accepted deteriorating move with delta: $delta, temperature: $temperature")
-                    bestMove = lazyMove.move
+                    bestMove = lazyMove
                     bestCost = delta
                     algorithmState.iterationsWithoutImprovement++
                     break

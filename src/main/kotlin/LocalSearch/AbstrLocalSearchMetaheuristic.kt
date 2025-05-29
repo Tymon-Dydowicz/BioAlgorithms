@@ -48,7 +48,8 @@ abstract class AbstrLocalSearchMetaheuristic(
 //            algorithmState.evaluatedSolutions += evaluations
 
             if (selectedMove != null) {
-                currentSolution = neighborhoodExplorer.applyMove(algorithmState.currentSolution, selectedMove)
+//                currentSolution = neighborhoodExplorer.applyMove(algorithmState.currentSolution, selectedMove)
+                currentSolution = selectedMove.applyTo(algorithmState.currentSolution)
                 algorithmState.currentSolution = currentSolution
                 // TODO Think about pos/neg steps here?
                 result.totalSteps++

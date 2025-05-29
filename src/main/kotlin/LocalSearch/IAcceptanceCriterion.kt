@@ -13,6 +13,6 @@ interface IAcceptanceCriterion {
         algorithmState: LocalSearchState,
         lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer,
-    ): IMove? // evaluations, selected move, resulting solution
+    ): LazyEvaluatedMove? // evaluations, selected move, resulting solution
     fun getName(): String
 }

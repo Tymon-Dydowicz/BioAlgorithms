@@ -7,7 +7,6 @@ interface INeighborhoodExplorer {
     fun generateMoves(solution: QAPSolution): List<IMove>
     fun generateLazyMoves(solution: QAPSolution, counter: EvaluationsCounter): List<LazyEvaluatedMove>
     fun generateRandomMove(solution: QAPSolution): IMove
-    fun applyMove(solution: QAPSolution, move: IMove): QAPSolution
     fun calculateDelta(solution: QAPSolution, move: IMove): Int
     fun getName(): String
 }

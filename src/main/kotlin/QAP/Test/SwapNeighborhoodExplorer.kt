@@ -23,13 +23,13 @@ class SwapNeighborhoodExplorer: AbstrNeighborhoodExplorer() {
         return SwapMove(i, j)
     }
 
-    override fun applyMove(solution: QAPSolution, move: IMove): QAPSolution {
-        val swapMove = move as SwapMove
-        val newSolution = solution.solution.copyOf()
-        newSolution[swapMove.i] = solution.solution[swapMove.j]
-        newSolution[swapMove.j] = solution.solution[swapMove.i]
-        return QAPSolution(solution.instance, newSolution)
-    }
+//    override fun applyMove(solution: QAPSolution, move: IMove): QAPSolution {
+//        val swapMove = move as SwapMove
+//        val newSolution = solution.solution.copyOf()
+//        newSolution[swapMove.i] = solution.solution[swapMove.j]
+//        newSolution[swapMove.j] = solution.solution[swapMove.i]
+//        return QAPSolution(solution.instance, newSolution)
+//    }
 
     override fun calculateDelta(solution: QAPSolution, move: IMove): Int {
         val swapMove = move as SwapMove

@@ -7,11 +7,11 @@ class GreedyAcceptance : IAcceptanceCriterion {
         algorithmState: LocalSearchState,
         lazyEvaluatedMoves: List<LazyEvaluatedMove>,
         explorer: INeighborhoodExplorer,
-    ): IMove? {
+    ): LazyEvaluatedMove? {
         for (move in lazyEvaluatedMoves) {
             val delta = move.delta // Lazy move evaluates the delta here
             if (delta < 0) {
-                return move.move
+                return move
             }
         }
 
