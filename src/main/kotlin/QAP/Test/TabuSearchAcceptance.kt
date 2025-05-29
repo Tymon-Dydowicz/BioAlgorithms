@@ -13,8 +13,7 @@ class TabuSearchAcceptance(
 
     override fun selectNextMove(
         algorithmState: LocalSearchState,
-        lazyEvaluatedMoves: List<LazyEvaluatedMove>,
-        explorer: INeighborhoodExplorer
+        lazyEvaluatedMoves: List<LazyEvaluatedMove>
     ): LazyEvaluatedMove? {
         var bestMove: LazyEvaluatedMove? = null
         var bestDelta = Int.MAX_VALUE

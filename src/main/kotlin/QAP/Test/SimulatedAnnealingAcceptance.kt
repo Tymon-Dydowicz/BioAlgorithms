@@ -16,8 +16,7 @@ class SimulatedAnnealingAcceptance(
 
     override fun selectNextMove(
         algorithmState: LocalSearchState,
-        lazyEvaluatedMoves: List<LazyEvaluatedMove>,
-        explorer: INeighborhoodExplorer,
+        lazyEvaluatedMoves: List<LazyEvaluatedMove>
     ): LazyEvaluatedMove? {
         val temperature = temperatureWrapper.currentTemperature
         var bestMove: LazyEvaluatedMove? = null

@@ -41,7 +41,7 @@ abstract class AbstrLocalSearchMetaheuristic(
             val lazyMoves = neighborhoodExplorer.generateLazyMoves(algorithmState.currentSolution, evaluationsCounter)
             val candidateMoves = candidateSelector.selectCandidates(lazyMoves, algorithmState)
 
-            val selectedMove = acceptanceCriterion.selectNextMove(algorithmState, candidateMoves, neighborhoodExplorer,)
+            val selectedMove = acceptanceCriterion.selectNextMove(algorithmState, candidateMoves)
 
 //            result.increaseEvaluatedSolutions(evaluations)
             result.algorithmLoops++

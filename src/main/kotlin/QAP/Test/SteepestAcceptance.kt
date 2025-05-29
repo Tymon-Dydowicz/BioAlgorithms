@@ -5,8 +5,7 @@ import LocalSearch.*
 class SteepestAcceptance : IAcceptanceCriterion {
     override fun selectNextMove(
         algorithmState: LocalSearchState,
-        lazyEvaluatedMoves: List<LazyEvaluatedMove>,
-        explorer: INeighborhoodExplorer,
+        lazyEvaluatedMoves: List<LazyEvaluatedMove>
     ): LazyEvaluatedMove? {
         val bestMove = lazyEvaluatedMoves
             .filter { it.delta < 0 } // Lazy move evaluates the delta here

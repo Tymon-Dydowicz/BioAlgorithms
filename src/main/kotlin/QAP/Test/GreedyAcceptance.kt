@@ -5,8 +5,7 @@ import LocalSearch.*
 class GreedyAcceptance : IAcceptanceCriterion {
     override fun selectNextMove(
         algorithmState: LocalSearchState,
-        lazyEvaluatedMoves: List<LazyEvaluatedMove>,
-        explorer: INeighborhoodExplorer,
+        lazyEvaluatedMoves: List<LazyEvaluatedMove>
     ): LazyEvaluatedMove? {
         for (move in lazyEvaluatedMoves) {
             val delta = move.delta // Lazy move evaluates the delta here
