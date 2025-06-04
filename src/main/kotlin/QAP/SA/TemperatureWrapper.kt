@@ -1,9 +1,11 @@
 package QAP.SA
 
+import LocalSearch.AbstrNeighborhoodExplorer
 import LocalSearch.INeighborhoodExplorer
 import LocalSearch.Resettable
 import LocalSearch.Stateful
 import QAP.QAPSolution
+import QAP.Test.SwapMove
 
 class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable {
     var currentTemperature: Double = initialTemperature
@@ -47,11 +49,10 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
             val worseningDeltas = mutableListOf<Int>()
 
             repeat(sampleSize) {
-                val move = explorer.generateRandomMove(solution)
-                val delta = explorer.calculateDelta(solution, move)
+                val move = explorer.generateLazyRandomMove(solution)
 
-                if (delta > 0) {
-                    worseningDeltas.add(delta)
+                if (move.delta > 0) {
+                    worseningDeltas.add(move.delta)
                 }
             }
 

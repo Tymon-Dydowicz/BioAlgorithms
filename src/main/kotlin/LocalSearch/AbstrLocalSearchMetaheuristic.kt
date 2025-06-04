@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 
 abstract class AbstrLocalSearchMetaheuristic(
     protected val solutionGenerator: ISolutionGenerator,
-    protected val neighborhoodExplorer: AbstrNeighborhoodExplorer,
+    protected val neighborhoodExplorer: INeighborhoodExplorer,
     protected val acceptanceCriterion: IAcceptanceCriterion,
     protected val stoppingCriterion: IStoppingCriterion,
     protected val candidateSelector: ICandidateSelector,

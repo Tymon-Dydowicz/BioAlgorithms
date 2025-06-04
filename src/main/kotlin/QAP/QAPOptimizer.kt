@@ -104,7 +104,7 @@ object QAPOptimizer {
         result.addStep(bestSolution.solutionCost, System.nanoTime() - endTime + time)
         result.increaseEvaluatedSolutions(1)
         result.algorithmLoops++
-        val neighborhoodExplorer = SwapNeighborhoodExplorer()
+        val neighborhoodExplorer = SwapNeighborhoodExplorer(QAPCostEvaluator())
         val lazyMoves = neighborhoodExplorer.generateLazyMoves(currentSolution, counter)
 
         while (System.nanoTime() < endTime) {
