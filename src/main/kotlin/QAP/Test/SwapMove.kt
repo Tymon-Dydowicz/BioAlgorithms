@@ -1,6 +1,7 @@
 package QAP.Test
 
 import LocalSearch.IMove
+import LocalSearch.ISolution
 import QAP.QAPSolution
 
 class SwapMove(val i: Int, val j: Int) : IMove {
@@ -18,11 +19,11 @@ class SwapMove(val i: Int, val j: Int) : IMove {
         return setOf("default", "first", "second", "ordered")
     }
 
-    override fun applyToWithDelta(solution: QAPSolution, delta: Int): QAPSolution {
+    override fun applyToWithDelta(solution: ISolution, delta: Int): ISolution {
         val newSolution = solution.solution.copyOf()
         newSolution[i] = solution.solution[j]
         newSolution[j] = solution.solution[i]
-        return QAPSolution(solution.instance, newSolution, solution.solutionCost + delta)
+        return solution.copyWith(newSolution, delta)
     }
 
     override fun toString(): String {

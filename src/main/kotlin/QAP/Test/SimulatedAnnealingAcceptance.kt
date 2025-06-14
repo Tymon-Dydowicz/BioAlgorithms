@@ -23,7 +23,7 @@ class SimulatedAnnealingAcceptance(
         var bestCost = Int.MAX_VALUE
 
         for (lazyMove in lazyEvaluatedMoves) {
-            val delta = lazyMove.delta //Lazy move evaluates the data here //explorer.calculateDelta(algorithmState.currentSolution, move)
+            val delta = lazyMove.delta
 
             if (delta < 0) {
                 logger.trace("Accepted improving move with delta: $delta, temperature: $temperature")

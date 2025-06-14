@@ -1,5 +1,6 @@
 package Analysis
 
+import LocalSearch.ISolution
 import QAP.QAPSolution
 import QAP.QAPSolutionManager
 import Results.OptimizationResult
@@ -10,9 +11,9 @@ class SimilarityAnalysisReport private constructor(override val instanceName: St
     val cosineSimilarity: MutableList<Double> = mutableListOf()
     val solutionCosts: MutableList<Int> = mutableListOf()
     val similarityToEachOther: MutableList<Double> = mutableListOf()
-    lateinit var optimalSolution: QAPSolution
+    lateinit var optimalSolution: ISolution
 
-    constructor(instanceName: String, results: List<OptimizationResult>, optimalSolution: QAPSolution) : this(instanceName) {
+    constructor(instanceName: String, results: List<OptimizationResult>, optimalSolution: ISolution) : this(instanceName) {
         this.optimalSolution = optimalSolution
         processResults(results)
     }

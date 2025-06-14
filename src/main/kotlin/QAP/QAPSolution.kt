@@ -1,20 +1,23 @@
 package QAP
 
+import LocalSearch.IProblemInstance
 import LocalSearch.ISolution
 
 class QAPSolution (
     override val instance: QAPInstance,
-    val solution: IntArray,
+    override val solution: IntArray,
     providedCost: Int? = null
 ) : ISolution {
-    // TODO Abstract the QAPSolution into a generic solution class
-    val solutionCost: Int = providedCost ?: QAPSolutionManager.calculateSolutionCost(instance, solution)
+    override val solutionCost: Int = providedCost ?: QAPSolutionManager.calculateSolutionCost(instance, solution)
 
-    fun describe() {
+    override fun describe() {
         println("Solution: " + solution.joinToString(" "))
         println("Solution cost: $solutionCost \n")
     }
 
+    override fun copyWith(newRepresentation: IntArray, delta: Int): ISolution {
+        return QAPSolution(instance, newRepresentation, solutionCost + delta)
+    }
 
     fun swapElements(i: Int, j: Int) : QAPSolution{
         val newSolution = solution.copyOf()

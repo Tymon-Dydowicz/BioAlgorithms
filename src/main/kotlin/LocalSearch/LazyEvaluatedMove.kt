@@ -13,7 +13,7 @@ class LazyEvaluatedMove(
         deltaProvider() // .also { move.delta = it } TODO Rethink if the IMove should stay clean
     }
 
-    fun applyTo(solution: QAPSolution): QAPSolution {
+    fun applyTo(solution: ISolution): ISolution {
         return move.applyToWithDelta(solution, delta)
     }
 }

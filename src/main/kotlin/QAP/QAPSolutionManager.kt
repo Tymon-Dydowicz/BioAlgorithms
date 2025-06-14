@@ -1,5 +1,6 @@
 package QAP
 
+import LocalSearch.ISolution
 import kotlin.math.sqrt
 
 object QAPSolutionManager {
@@ -39,8 +40,9 @@ object QAPSolutionManager {
         return cost
     }
 
-    fun calculatHammingDistance(solution1: QAPSolution, solution2: QAPSolution): Int {
-        return calculateHammingDistance(solution1.solution, solution2.solution)
+    fun calculatHammingDistance(solution1: ISolution, solution2: ISolution): Int {
+        return 1
+//        return calculateHammingDistance(solution1.solution, solution2.solution)
     }
 
     fun calculateHammingDistance(solution1: IntArray, solution2: IntArray): Int {
@@ -53,8 +55,9 @@ object QAPSolutionManager {
         return distance
     }
 
-    fun calculateHammingSimilarity(solution1: QAPSolution, solution2: QAPSolution): Double {
-        return calculateHammingSimilarity(solution1.solution, solution2.solution)
+    fun calculateHammingSimilarity(solution1: ISolution, solution2: ISolution): Double {
+        return 1.0
+//        return calculateHammingSimilarity(solution1.solution, solution2.solution)
     }
 
     fun calculateHammingSimilarity(solution1: IntArray, solution2: IntArray): Double {
@@ -62,8 +65,9 @@ object QAPSolutionManager {
         return 1.0 - (distance.toDouble() / solution1.size)
     }
 
-    fun calculateCosineSimilarity(solution1: QAPSolution, solution2: QAPSolution): Double {
-        return calculateCosineSimilarity(solution1.solution, solution2.solution)
+    fun calculateCosineSimilarity(solution1: ISolution, solution2: ISolution): Double {
+        return 1.0
+//        return calculateCosineSimilarity(solution1.solution, solution2.solution)
     }
 
     fun calculateCosineSimilarity(solution1: IntArray, solution2: IntArray): Double {

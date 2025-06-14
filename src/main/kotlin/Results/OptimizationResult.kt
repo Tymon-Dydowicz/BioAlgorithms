@@ -1,5 +1,6 @@
 package Results
 
+import LocalSearch.ISolution
 import QAP.QAPSolution
 import java.io.File
 
@@ -12,8 +13,8 @@ class OptimizationResult(val name: String, val instanceSize: Int) {
     var negSteps: Int = 0
     var totalSteps: Int = 0
     var algorithmLoops: Int = 0
-    var initialSolution: QAPSolution? = null
-    var bestSolution: QAPSolution? = null
+    var initialSolution: ISolution? = null
+    var bestSolution: ISolution? = null
     var timeSinceLastImprovement: Long = 0
     var optimum: Int = 0
     var evaluatedSolutions: Long = 0
@@ -55,7 +56,7 @@ class OptimizationResult(val name: String, val instanceSize: Int) {
         this.runtime = runtime
     }
 
-    fun setBestSolutionIn(bestSolution: QAPSolution) {
+    fun setBestSolutionIn(bestSolution: ISolution) {
         this.bestSolution = bestSolution
     }
 

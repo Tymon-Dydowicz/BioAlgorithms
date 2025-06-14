@@ -1,9 +1,6 @@
 package QAP.SA
 
-import LocalSearch.AbstrNeighborhoodExplorer
-import LocalSearch.INeighborhoodExplorer
-import LocalSearch.Resettable
-import LocalSearch.Stateful
+import LocalSearch.*
 import QAP.QAPSolution
 import QAP.Test.SwapMove
 
@@ -13,7 +10,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
 
     companion object {
         fun calculateInitialTemperature(
-            solution: QAPSolution,
+            solution: ISolution,
             explorer: INeighborhoodExplorer,
             initialAcceptanceRatio: Double = 0.9,
             sampleSize: Int = 100
@@ -27,7 +24,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
         }
 
         fun calculateFreezingTemperature(
-            solution: QAPSolution,
+            solution: ISolution,
             explorer: INeighborhoodExplorer,
             epsilon: Double = 1e-3,
             sampleSize: Int = 100
@@ -41,7 +38,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
         }
 
         private fun calculateTemperatureForAcceptanceProbability(
-            solution: QAPSolution,
+            solution: ISolution,
             explorer: INeighborhoodExplorer,
             targetAcceptanceProbability: Double,
             sampleSize: Int

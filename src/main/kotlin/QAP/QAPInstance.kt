@@ -1,18 +1,15 @@
 package QAP
 
-class QAPInstance {
-    val instanceName: String
-    val instanceSize: Int
-    val distances: Array<IntArray>
-    val flows: Array<IntArray>
-    var optimalSolution: QAPSolution? = null
+import LocalSearch.AbstrProblemInstance
 
-    constructor(instanceName: String, instanceSize: Int, flows: Array<IntArray>, distances: Array<IntArray>) {
-        this.instanceName = instanceName
-        this.instanceSize = instanceSize
-        this.distances = distances
-        this.flows = flows
+class QAPInstance(
+    instanceSize: Int,
+    val flows: Array<IntArray>,
+    val distances: Array<IntArray>,
+    instanceName: String? = null
+) : AbstrProblemInstance(instanceSize, instanceName) {
 
+    init {
         verifyInstance()
     }
 
@@ -24,7 +21,7 @@ class QAPInstance {
         return flows[i][j]
     }
 
-    fun describe() {
+    override fun describe() {
         println("Instance size: $instanceSize")
         println("Flows:")
         for (i in 0 until instanceSize) {
@@ -38,7 +35,7 @@ class QAPInstance {
         println("")
     }
 
-    fun verifyInstance() {
+    override fun verifyInstance() {
         if (flows.size != instanceSize || distances.size != instanceSize) {
             throw IllegalArgumentException("Instance size does not match the size of the matrices")
         }

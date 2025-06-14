@@ -4,9 +4,9 @@ import QAP.QAPInstance
 import QAP.QAPSolution
 
 data class LocalSearchState(
-    val instance: QAPInstance,
-    var currentSolution: QAPSolution,
-    var bestSolution: QAPSolution,
+    val instance: IProblemInstance,
+    var currentSolution: ISolution,
+    var bestSolution: ISolution,
     var bestSolutionCost: Int,
     var iteration: Int = 0,
     val startTime: Long = System.nanoTime(),

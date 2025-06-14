@@ -28,7 +28,7 @@ object DataLoader {
             }
         }
 
-        return QAPInstance(instanceNameClean, instanceSize, flowMatrix, distanceMatrix)
+        return QAPInstance(instanceSize, flowMatrix, distanceMatrix, instanceNameClean)
     }
 
     fun loadUnformattedInstance(dataPath: String, instanceName: String): QAPInstance {
@@ -54,6 +54,6 @@ object DataLoader {
             }
         }
 
-        return QAPInstance(instanceNameClean, instanceSize, flowMatrix, distanceMatrix)
+        return QAPInstance(instanceSize, flowMatrix, distanceMatrix, instanceNameClean)
     }
 }

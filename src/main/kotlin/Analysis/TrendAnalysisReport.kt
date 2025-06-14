@@ -1,11 +1,12 @@
 package Analysis
 
+import LocalSearch.ISolution
 import QAP.QAPSolution
 import Results.OptimizationResult
 
 class TrendAnalysisReport private constructor(override val instanceName: String): AnalysisReport {
-    var initialSolutions: MutableList<QAPSolution> = mutableListOf()
-    var bestSolutions: MutableList<QAPSolution> = mutableListOf()
+    var initialSolutions: MutableList<ISolution> = mutableListOf()
+    var bestSolutions: MutableList<ISolution> = mutableListOf()
 
     constructor(instanceName: String, results: List<OptimizationResult>) : this(instanceName) {
         processResults(results)
