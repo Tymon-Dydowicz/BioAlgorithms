@@ -3,17 +3,66 @@ package LocalSearch
 import QAP.QAPSolution
 
 
-class LazyEvaluatedMove(
+class LazyEvaluatedMove private constructor(
     val move: IMove,
-    private val deltaProvider: () -> Int,
-    private val evaluationsCounter: EvaluationsCounter,
+    private val actualDeltaProvider: () -> Int,
+    private val objectiveDeltaProvider: (() -> Int)?,
+    val evaluationsCounter: EvaluationsCounter
 ) {
-    val delta: Int by lazy {
-        evaluationsCounter.evaluations++
-        deltaProvider() // .also { move.delta = it } TODO Rethink if the IMove should stay clean
+    private var _actualDelta: Int? = null
+    private var _objectiveDelta: Int? = null
+    private var _evaluated: Boolean = false
+
+    val actualDelta: Int
+        get() {
+            if (!_evaluated) evaluate()
+            return _actualDelta!!
+        }
+
+    val objectiveDelta: Int?
+        get() {
+            if (!_evaluated) evaluate()
+            return _objectiveDelta
+        }
+
+    val delta: Int
+        get() = objectiveDelta ?: actualDelta
+
+    private fun evaluate() {
+        if (!_evaluated) {
+            evaluationsCounter.evaluations++
+            _actualDelta = actualDeltaProvider()
+            _objectiveDelta = objectiveDeltaProvider?.invoke()
+            _evaluated = true
+        }
     }
 
     fun applyTo(solution: ISolution): ISolution {
-        return move.applyToWithDelta(solution, delta)
+        return move.applyToWithDelta(solution, actualDelta)
+    }
+
+    companion object {
+        fun create(
+            move: IMove,
+            deltaProvider: () -> Int,
+            counter: EvaluationsCounter
+        ): LazyEvaluatedMove = LazyEvaluatedMove(
+            move = move,
+            actualDeltaProvider = deltaProvider,
+            objectiveDeltaProvider = null,
+            evaluationsCounter = counter
+        )
+
+        fun createObjectiveAware(
+            move: IMove,
+            actualDeltaProvider: () -> Int,
+            objectiveDeltaProvider: () -> Int,
+            counter: EvaluationsCounter
+        ): LazyEvaluatedMove = LazyEvaluatedMove(
+            move = move,
+            actualDeltaProvider = actualDeltaProvider,
+            objectiveDeltaProvider = objectiveDeltaProvider,
+            evaluationsCounter = counter
+        )
     }
 }

@@ -15,6 +15,7 @@ abstract class AbstrLocalSearchMetaheuristic(
     protected val stoppingCriterion: IStoppingCriterion,
     protected val candidateSelector: ICandidateSelector,
     protected val perturbation: IPerturbation,
+    protected val objective: IObjective
 ) {
     private val logger = LoggerFactory.getLogger(AbstrLocalSearchMetaheuristic::class.java)
 
@@ -40,7 +41,7 @@ abstract class AbstrLocalSearchMetaheuristic(
             algorithmState.iteration++
             logger.trace(algorithmState.toString())
 
-            val lazyMoves = neighborhoodExplorer.generateLazyMoves(algorithmState.currentSolution, evaluationsCounter)
+            val lazyMoves = neighborhoodExplorer.generateLazyMoves(algorithmState.currentSolution, objective, evaluationsCounter)
             val candidateMoves = candidateSelector.selectCandidates(lazyMoves, algorithmState)
 
             val selectedMove = acceptanceCriterion.selectNextMove(algorithmState, candidateMoves)

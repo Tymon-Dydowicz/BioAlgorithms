@@ -11,7 +11,8 @@ class LocalSearchConfig private constructor(
     val stoppingCriterion: IStoppingCriterion,
     val candidateSelector: ICandidateSelector = ICandidateSelector.All(),
     val perturbation: IPerturbation = IPerturbation.NoPerturbation(),
-    private val acceptanceCriterion: IAcceptanceCriterion,
+    val objective: IObjective = IObjective.Minimization(),
+    private val acceptanceCriterion: IAcceptanceCriterion
 ) {
     constructor(
         solutionGenerator: ISolutionGenerator<*, *>, //TODO Think about builder pattern for safety
@@ -20,6 +21,7 @@ class LocalSearchConfig private constructor(
         stoppingCriterion: IStoppingCriterion,
         candidateSelector: ICandidateSelector = ICandidateSelector.All(),
         perturbation: IPerturbation = IPerturbation.NoPerturbation(),
+        objective: IObjective = IObjective.Minimization()
     ) : this(
         solutionGenerator,
         neighborhoodExplorer,
@@ -27,7 +29,8 @@ class LocalSearchConfig private constructor(
         stoppingCriterion,
         candidateSelector,
         perturbation,
-        acceptanceCriterion,
+        objective,
+        acceptanceCriterion
     )
 
     fun createAlgorithm(): AbstrLocalSearchMetaheuristic {
@@ -38,6 +41,7 @@ class LocalSearchConfig private constructor(
             stoppingCriterion,
             candidateSelector,
             perturbation,
+            objective
         ) {}
     }
 

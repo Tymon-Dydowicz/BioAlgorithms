@@ -5,6 +5,7 @@ import QAP.QAPSolution
 import QAP.Test.SwapMove
 
 class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable {
+    // TODO Move this to a better place so it can account for the objective
     var currentTemperature: Double = initialTemperature
     private var initialTemperatureMemory: Double = initialTemperature
 
@@ -46,7 +47,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
             val worseningDeltas = mutableListOf<Int>()
 
             repeat(sampleSize) {
-                val move = explorer.generateLazyRandomMove(solution)
+                val move = explorer.generateLazyRandomMove(solution, IObjective.Minimization())
 
                 if (move.delta > 0) {
                     worseningDeltas.add(move.delta)
