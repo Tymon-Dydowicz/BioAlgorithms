@@ -1,9 +1,9 @@
 package LocalSearch
 
-import QAP.QAPInstance
+import LocalSearch.BaseInterfaces.ISolutionBase
+import LocalSearch.Representations.AbstrPermutationSolution
+import LocalSearch.Representations.ISolution
 import QAP.TabuSearch.ICandidateSelector
-import QAP.Test.SimulatedAnnealingAcceptance
-import QAP.Test.TabuSearchAcceptance
 import Results.OptimizationResult
 import org.slf4j.LoggerFactory
 
@@ -57,7 +57,7 @@ abstract class AbstrLocalSearchMetaheuristic(
                 // TODO Think about pos/neg steps here?
                 result.totalSteps++
 
-                if (currentSolution.solutionCost < algorithmState.bestSolutionCost) {
+                if (objective.isBetter(algorithmState.bestSolution, currentSolution)) {
                     // TODO Rethink if this is a correct spot
                     result.addStep(currentSolution.solutionCost, System.nanoTime() - algorithmState.startTime)
                     algorithmState.bestSolution = currentSolution
@@ -83,7 +83,7 @@ abstract class AbstrLocalSearchMetaheuristic(
         result.addStep(algorithmState.bestSolutionCost, System.nanoTime() - algorithmState.startTime)
         result.setBestSolutionIn(algorithmState.bestSolution)
         println("Best solution: ${algorithmState.bestSolution}, cost: ${algorithmState.bestSolutionCost}")
-        println("Solution Permutation: ${algorithmState.bestSolution.solution.joinToString(", ")}")
+        algorithmState.bestSolution.describe()
         result.evaluatedSolutions = evaluationsCounter.evaluations
 
         return result
