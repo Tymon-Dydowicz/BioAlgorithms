@@ -1,13 +1,28 @@
 package QAP.SA
 
 import LocalSearch.*
-import QAP.QAPSolution
-import QAP.Test.SwapMove
+import LocalSearch.Representations.ISolution
 
 class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable {
     // TODO Move this to a better place so it can account for the objective
     var currentTemperature: Double = initialTemperature
     private var initialTemperatureMemory: Double = initialTemperature
+
+    fun updateTemperature(
+        iteration: Int,
+        lastAcceptedDelta: Double,
+        coolingSchedule: ICoolingSchedule,
+        reheatingSchedule: IReheatingSchedule
+    ) {
+        val temp = currentTemperature
+        currentTemperature = when {
+            reheatingSchedule.shouldReheat(iteration, temp, lastAcceptedDelta) ->
+                reheatingSchedule.reheat(initialTemperature, temp)
+            coolingSchedule.shouldCool(iteration, temp) ->
+                coolingSchedule.cool(temp)
+            else -> temp
+        }
+    }
 
     companion object {
         fun calculateInitialTemperature(
