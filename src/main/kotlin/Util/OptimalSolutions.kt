@@ -1,5 +1,6 @@
 package Util
 
+import LocalSearch.Representations.PermutationRepresentation
 import QAP.QAPInstance
 import QAP.QAPOptimizer
 import QAP.QAPSolution
@@ -35,7 +36,7 @@ object OptimalSolutions {
             println("Optimal solution for lipa90b.dat: ${optimalQAPSolution.solutionCost}")
         } else {
             optimalSolution = getPermutation(instanceName)
-            optimalQAPSolution = QAPSolution(instance, optimalSolution)
+            optimalQAPSolution = QAPSolution(instance, PermutationRepresentation(optimalSolution))
         }
 
         return optimalQAPSolution

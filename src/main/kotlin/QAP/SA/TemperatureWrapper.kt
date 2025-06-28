@@ -1,17 +1,33 @@
 package QAP.SA
 
-import LocalSearch.INeighborhoodExplorer
-import LocalSearch.Resettable
-import LocalSearch.Stateful
-import QAP.QAPSolution
+import LocalSearch.*
+import LocalSearch.BaseInterfaces.ISolutionBase
+import LocalSearch.Representations.ISolution
 
 class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable {
+    // TODO Move this to a better place so it can account for the objective
     var currentTemperature: Double = initialTemperature
     private var initialTemperatureMemory: Double = initialTemperature
 
+    fun updateTemperature(
+        iteration: Int,
+        lastAcceptedDelta: Double,
+        coolingSchedule: ICoolingSchedule,
+        reheatingSchedule: IReheatingSchedule
+    ) {
+        val temp = currentTemperature
+        currentTemperature = when {
+            reheatingSchedule.shouldReheat(iteration, temp, lastAcceptedDelta) ->
+                reheatingSchedule.reheat(initialTemperature, temp)
+            coolingSchedule.shouldCool(iteration, temp) ->
+                coolingSchedule.cool(temp)
+            else -> temp
+        }
+    }
+
     companion object {
         fun calculateInitialTemperature(
-            solution: QAPSolution,
+            solution: ISolutionBase,
             explorer: INeighborhoodExplorer,
             initialAcceptanceRatio: Double = 0.9,
             sampleSize: Int = 100
@@ -25,7 +41,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
         }
 
         fun calculateFreezingTemperature(
-            solution: QAPSolution,
+            solution: ISolutionBase,
             explorer: INeighborhoodExplorer,
             epsilon: Double = 1e-3,
             sampleSize: Int = 100
@@ -39,7 +55,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
         }
 
         private fun calculateTemperatureForAcceptanceProbability(
-            solution: QAPSolution,
+            solution: ISolutionBase,
             explorer: INeighborhoodExplorer,
             targetAcceptanceProbability: Double,
             sampleSize: Int
@@ -47,11 +63,10 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
             val worseningDeltas = mutableListOf<Int>()
 
             repeat(sampleSize) {
-                val move = explorer.generateRandomMove(solution)
-                val delta = explorer.calculateDelta(solution, move)
+                val move = explorer.generateLazyRandomMove(solution, IObjective.Minimization())
 
-                if (delta > 0) {
-                    worseningDeltas.add(delta)
+                if (move.delta > 0) {
+                    worseningDeltas.add(move.delta)
                 }
             }
 

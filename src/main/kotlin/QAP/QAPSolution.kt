@@ -1,24 +1,31 @@
 package QAP
 
-class QAPSolution(
-    val instance: QAPInstance,
-    val solution: IntArray,
-    providedCost: Int? = null
-    ) {
-    // TODO Abstract the QAPSolution into a generic solution class
-    val solutionCost: Int = providedCost ?: QAPSolutionManager.calculateSolutionCost(instance, solution)
+import LocalSearch.Representations.AbstrPermutationSolution
+import LocalSearch.Representations.PermutationRepresentation
 
-    fun describe() {
-        println("Solution: " + solution.joinToString(" "))
+class QAPSolution (
+    override val instance: QAPInstance,
+    override val representation: PermutationRepresentation,
+    providedCost: Int? = null
+) : AbstrPermutationSolution() {
+    override val solutionCost: Int = providedCost ?: QAPSolutionManager.calculateSolutionCost(instance, representation)
+
+    override fun describe() {
+        representation.describe()
         println("Solution cost: $solutionCost \n")
     }
 
+    override fun copyWith(newRepresentation: PermutationRepresentation, delta: Int): QAPSolution {
+        return QAPSolution(instance, newRepresentation, solutionCost + delta)
+    }
 
     fun swapElements(i: Int, j: Int) : QAPSolution{
-        val newSolution = solution.copyOf()
-        newSolution[i] = solution[j]
-        newSolution[j] = solution[i]
+        val newSolution = representation.retrieveData()
+        val temp = newSolution[i]
+        newSolution[i] = newSolution[j]
+        newSolution[j] = temp
+        val newRepresentation = PermutationRepresentation(newSolution)
 
-        return QAPSolution(instance, newSolution)
+        return QAPSolution(instance, newRepresentation)
     }
 }

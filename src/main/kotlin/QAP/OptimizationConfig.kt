@@ -2,15 +2,11 @@ package QAP
 
 import Enums.AlgorithmType
 import LocalSearch.*
-import QAP.QAPInstance
-import QAP.Test.GreedyAcceptance
-import QAP.Test.HeuristicSolutionGenerator
-import QAP.Test.RandomSolutionGenerator
-import QAP.Test.SteepestAcceptance
+//import QAP.Test.HeuristicSolutionGenerator
 import java.util.Date
 
 data class OptimizationConfig(
-    val instance: QAPInstance,
+    val instance: IProblemInstance,
     // Replace algorithmType with components
     val localSearchConfig: LocalSearchConfig,
     val time: Long,

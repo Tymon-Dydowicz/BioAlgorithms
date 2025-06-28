@@ -23,7 +23,7 @@ class SimulatedAnnealingAcceptance(
         var bestCost = Int.MAX_VALUE
 
         for (lazyMove in lazyEvaluatedMoves) {
-            val delta = lazyMove.delta //Lazy move evaluates the data here //explorer.calculateDelta(algorithmState.currentSolution, move)
+            val delta = lazyMove.delta
 
             if (delta < 0) {
                 logger.trace("Accepted improving move with delta: $delta, temperature: $temperature")
@@ -43,14 +43,10 @@ class SimulatedAnnealingAcceptance(
             }
         }
 
-        //TODO probably split into 2 ifs
-        if (reheatingSchedule.shouldReheat(algorithmState.iteration, temperature, bestCost.toDouble())) {
-            temperatureWrapper.currentTemperature = reheatingSchedule.reheat(temperatureWrapper.initialTemperature, temperature)
-        } else if (coolingSchedule.shouldCool(algorithmState.iteration, temperature)){
-            temperatureWrapper.currentTemperature = coolingSchedule.cool(temperature)
-        }
-
+        temperatureWrapper.updateTemperature(algorithmState.iteration, bestCost.toDouble(), coolingSchedule, reheatingSchedule)
         algorithmState.temperature = temperatureWrapper.currentTemperature
+
+        if (bestMove == null) logger.info("No move selected, all moves have non-negative delta or were rejected.")
 
         return bestMove
     }

@@ -1,15 +1,15 @@
-import LocalSearch.LocalSearchConfig
-import LocalSearch.IStoppingCriterion
+import LocalSearch.*
+import ProblemImplementations.Knapsack.*
 import QAP.*
 import QAP.SA.ICoolingSchedule
 import QAP.SA.IReheatingSchedule
 import QAP.SA.TemperatureWrapper
-import QAP.TabuSearch.IAspirationCriterion
-import QAP.TabuSearch.IMoveFeatureExtractor
-import QAP.TabuSearch.ITabuList
-import QAP.TabuSearch.ITabuTenureSchedule
+import QAP.TabuSearch.*
 import QAP.Test.*
 import Results.*
+import ProblemImplementations.TSP.TSPCostEvaluator
+import ProblemImplementations.TSP.TSPSolution
+import ProblemImplementations.TSP.TSPUtil
 import Util.*
 
 typealias OptimizationFunction = (QAPInstance, Int, Int) -> OptimizationResult
@@ -70,45 +70,138 @@ fun main(args: Array<String>) {
 //        analysisType = AnalysisType.RESTARTS,
 //    )
 
-    runTabuSearch(instance)
+//    runTabuSearch(instance)
+//    runTestTSP()
+    runTestKnapsack()
 
 }
 
-fun runTabuSearch(instance: QAPInstance) {
-    val tabuConfig = LocalSearchConfig(
-        RandomSolutionGenerator(),
-        SwapNeighborhoodExplorer(),
+fun runTestKnapsack() {
+    val instance = KnapsackUtil.generateInstanceWithKnownOptimum(
+        itemCount = 50,
+        name = "TestKnapsackInstance"
+    )
+    instance.describe()
+    val initialTemp = TemperatureWrapper.calculateInitialTemperature(
+        KnapsackTestSolutionGenerator(::KnapsackSolution).generateSolution(instance),
+        FlipNeighborhoodExplorer(KnapsackCostEvaluator())
+    )
+    println("Initial temperature: $initialTemp")
+    val temperatureWrapper = TemperatureWrapper(initialTemp)
+
+    val LSConfig = LocalSearchConfig(
+        KnapsackTestSolutionGenerator(::KnapsackSolution),
+        FlipNeighborhoodExplorer(
+            KnapsackCostEvaluator()
+        ),
+//        GreedyAcceptance(),
+//        SteepestAcceptance(),
         TabuSearchAcceptance(
             ITabuList.AttributeBasedTabuList(IMoveFeatureExtractor.Default()),
             IAspirationCriterion.BestMove(),
-            ITabuTenureSchedule.SizeBasedTenure(132)
+            ITabuTenureSchedule.StaticTenure(instance.instanceSize/16),
+        ),
+//                SimulatedAnnealingAcceptance(
+//            temperatureWrapper,
+//            IReheatingSchedule.PeriodicReheat(1, 0.3),
+//            ICoolingSchedule.Exponential(10, 0.95)
+//        ),
+        IStoppingCriterion.maxRuntimeMs(5000),//*60*15) ,
+        ICandidateSelector.SampledElite(),
+        objective = IObjective.Maximization()
+    )
+
+    val knapsackConfig = OptimizationConfig(
+        instance = instance,
+        localSearchConfig = LSConfig,
+        time = 5000,
+        algorithmRuns = 100,
+    )
+
+    evaluateAlgorithms(listOf(knapsackConfig))
+}
+
+fun runTestTSP() {
+    val instance = TSPUtil.generateCircularInstance(50, 100.0, "TestTSPInstance")
+    instance.describe()
+
+    val initialTemp = TemperatureWrapper.calculateInitialTemperature(
+        RandomPermutationSolutionGenerator(::TSPSolution).generateSolution(instance),
+        SwapNeighborhoodExplorer(TSPCostEvaluator())
+    )
+    println("Initial temperature: $initialTemp")
+    val temperatureWrapper = TemperatureWrapper(initialTemp)
+
+    val LSConfig = LocalSearchConfig(
+        RandomPermutationSolutionGenerator(::TSPSolution),
+        SwapNeighborhoodExplorer(
+            TSPCostEvaluator()
+        ),
+//        GreedyAcceptance(),
+//        SteepestAcceptance(),
+        TabuSearchAcceptance(
+            ITabuList.AttributeBasedTabuList(IMoveFeatureExtractor.Default()),
+            IAspirationCriterion.BestMove(),
+            ITabuTenureSchedule.StaticTenure(instance.instanceSize/4),
+        ),
+        //        SimulatedAnnealingAcceptance(
+//            temperatureWrapper,
+//            IReheatingSchedule.PeriodicReheat(20, 0.3),
+//            ICoolingSchedule.Exponential(10, 0.95)
+//        ),
+        IStoppingCriterion.maxRuntimeMs(1000),//*60*15),
+        ICandidateSelector.SampledElite()
+    )
+
+    val tspConfig = OptimizationConfig(
+        instance = instance,
+        localSearchConfig = LSConfig,
+        time = 5000,
+        algorithmRuns = 10,
+    )
+
+    evaluateAlgorithms(listOf(tspConfig))
+}
+
+fun runTabuSearch(instance: QAPInstance) {
+    val markovLength = instance.instanceSize
+    val P = 10
+
+    val tabuConfig = LocalSearchConfig(
+        RandomPermutationSolutionGenerator(::QAPSolution),
+        SwapNeighborhoodExplorer(QAPCostEvaluator()),
+        TabuSearchAcceptance(
+            ITabuList.AttributeBasedTabuList(IMoveFeatureExtractor.Default()),
+            IAspirationCriterion.BestMove(),
+            ITabuTenureSchedule.StaticTenure(instance.instanceSize/4),
 //            ITabuTenureSchedule.StaticTenure(50), // Static 50 finds the optimum very often
         ),
-        IStoppingCriterion.temperatureThreshold(100.0) or
-                IStoppingCriterion.maxRuntime(100) or
+        IStoppingCriterion.maxIterationsWithoutImprovement(20) or
+                IStoppingCriterion.maxRuntimeMs(5000) or
                 IStoppingCriterion.maxIterations(1000000),
     )
     val LSTabuConfig = OptimizationConfig(
         instance = instance,
         localSearchConfig = tabuConfig,
         time = 5000,
-        algorithmRuns = 50,
+        algorithmRuns = 4,
     )
 
     evaluateAlgorithms(listOf(LSTabuConfig))
 }
 
 fun runSimulateAnnealing(instance: QAPInstance) {
-    val initialTemp = TemperatureWrapper.calculateInitialTemperature(RandomSolutionGenerator().generate(instance), SwapNeighborhoodExplorer())
+    val initialTemp = TemperatureWrapper.calculateInitialTemperature(RandomPermutationSolutionGenerator(::QAPSolution).generateSolution(instance), SwapNeighborhoodExplorer(QAPCostEvaluator()))
     println("Initial temperature: $initialTemp")
     val temperatureWrapper = TemperatureWrapper(initialTemp)
 
+
     val SAConfig = LocalSearchConfig(
-        RandomSolutionGenerator(),
-        SwapNeighborhoodExplorer(),
-        SimulatedAnnealingAcceptance(temperatureWrapper, IReheatingSchedule.PeriodicReheat(20, 0.3), ICoolingSchedule.Exponential(0.95)),
+        RandomPermutationSolutionGenerator(::QAPSolution),
+        SwapNeighborhoodExplorer(QAPCostEvaluator()),
+        SimulatedAnnealingAcceptance(temperatureWrapper, IReheatingSchedule.PeriodicReheat(20, 0.3), ICoolingSchedule.Exponential(10, 0.95)),
         IStoppingCriterion.temperatureThreshold(100.0) or
-                IStoppingCriterion.maxRuntime(5000) or
+                IStoppingCriterion.maxRuntimeMs(5000) or
                 IStoppingCriterion.maxIterations(1000000),
     )
     val LSSAConfig = OptimizationConfig(
@@ -131,7 +224,7 @@ fun evaluateAlgorithms(
         val avgResult = AvgOptimizationResult.fromResults(config.algorithmType.toString(), results)
 
         avgResult.describe()
-        avgResult.exportToCSV("results/${config.instance.instanceName}_${config.algorithmType}_avg_results.csv")
+//        avgResult.exportToCSV("results/${config.instance.instanceName}_${config.algorithmType}_avg_results.csv")
     }
 }
 
@@ -154,65 +247,65 @@ fun QAPBenchmark(dataLocation: String, instanceName: String, repeats: Int){
 //        algorithmRuns = repeats,
 //    )
 
-    val randGLSConfig = OptimizationConfig(
-        instance = instance,
-        localSearchConfig = LocalSearchFactory.createGreedyLocalSearch(5000, false),
-        time = 5000,
-        algorithmRuns = repeats,
-    )
+//    val randGLSConfig = OptimizationConfig(
+//        instance = instance,
+//        localSearchConfig = LocalSearchFactory.createGreedyLocalSearch(5000, false),
+//        time = 5000,
+//        algorithmRuns = repeats,
+//    )
 
-    val randSLSConfig = OptimizationConfig(
-        instance = instance,
-        localSearchConfig = LocalSearchFactory.createSteepestLocalSearch(5000, false),
-        time = 5000,
-        algorithmRuns = repeats,
-    )
+//    val randSLSConfig = OptimizationConfig(
+//        instance = instance,
+//        localSearchConfig = LocalSearchFactory.createSteepestLocalSearch(5000, false),
+//        time = 5000,
+//        algorithmRuns = repeats,
+//    )
 
-    val heurGLSConfig = OptimizationConfig(
-        instance = instance,
-        localSearchConfig = LocalSearchFactory.createGreedyLocalSearch(5000, true),
-        time = 5000,
-        algorithmRuns = repeats,
-    )
+//    val heurGLSConfig = OptimizationConfig(
+//        instance = instance,
+//        localSearchConfig = LocalSearchFactory.createGreedyLocalSearch(5000, true),
+//        time = 5000,
+//        algorithmRuns = repeats,
+//    )
+//
+//    val heurSLSConfig = OptimizationConfig(
+//        instance = instance,
+//        localSearchConfig = LocalSearchFactory.createSteepestLocalSearch(5000, true),
+//        time = 5000,
+//        algorithmRuns = repeats,
+//    )
 
-    val heurSLSConfig = OptimizationConfig(
-        instance = instance,
-        localSearchConfig = LocalSearchFactory.createSteepestLocalSearch(5000, true),
-        time = 5000,
-        algorithmRuns = repeats,
-    )
+//    val randGMSLSConfig = OptimizationConfig(
+//        instance = instance,
+//        localSearchConfig = LocalSearchFactory.createGreedyLocalSearch(5000, false),
+//        time = 5000,
+//        algorithmRuns = repeats,
+//        multiStarts = 200,
+//    )
+//
+//    val heurGMSLSConfig = OptimizationConfig(
+//        instance = instance,
+//        localSearchConfig = LocalSearchFactory.createGreedyLocalSearch(5000, true),
+//        time = 5000,
+//        algorithmRuns = repeats,
+//        multiStarts = 200,
+//    )
 
-    val randGMSLSConfig = OptimizationConfig(
-        instance = instance,
-        localSearchConfig = LocalSearchFactory.createGreedyLocalSearch(5000, false),
-        time = 5000,
-        algorithmRuns = repeats,
-        multiStarts = 200,
-    )
-
-    val heurGMSLSConfig = OptimizationConfig(
-        instance = instance,
-        localSearchConfig = LocalSearchFactory.createGreedyLocalSearch(5000, true),
-        time = 5000,
-        algorithmRuns = repeats,
-        multiStarts = 200,
-    )
-
-    val randSMSLSConfig = OptimizationConfig(
-        instance = instance,
-        localSearchConfig = LocalSearchFactory.createSteepestLocalSearch(5000, false),
-        time = 5000,
-        algorithmRuns = repeats,
-        multiStarts = 200,
-    )
-
-    val heurSMSLSConfig = OptimizationConfig(
-        instance = instance,
-        localSearchConfig = LocalSearchFactory.createSteepestLocalSearch(5000, true),
-        time = 5000,
-        algorithmRuns = repeats,
-        multiStarts = 200,
-    )
+//    val randSMSLSConfig = OptimizationConfig(
+//        instance = instance,
+//        localSearchConfig = LocalSearchFactory.createSteepestLocalSearch(5000, false),
+//        time = 5000,
+//        algorithmRuns = repeats,
+//        multiStarts = 200,
+//    )
+//
+//    val heurSMSLSConfig = OptimizationConfig(
+//        instance = instance,
+//        localSearchConfig = LocalSearchFactory.createSteepestLocalSearch(5000, true),
+//        time = 5000,
+//        algorithmRuns = repeats,
+//        multiStarts = 200,
+//    )
 
 //    val longestExecutionTime = checkLongestExecutionTime(heurSMSLSConfig)
 
@@ -230,19 +323,19 @@ fun QAPBenchmark(dataLocation: String, instanceName: String, repeats: Int){
 //        algorithmRuns = repeats,
 //    )
 
-    val configs = listOf(
+//    val configs = listOf(
 //        heurConfig,
 //        randGLSConfig,
 //        randSLSConfig,
 //        heurGLSConfig,
 //        heurSLSConfig,
-        randGMSLSConfig,
-        heurGMSLSConfig,
-        randSMSLSConfig,
-        heurSMSLSConfig,
+//        randGMSLSConfig,
+//        heurGMSLSConfig,
+//        randSMSLSConfig,
+//        heurSMSLSConfig,
 //        RWConfig,
 //        RSConfig
-    )
+//    )
 
-    evaluateAlgorithms(configs)
+//    evaluateAlgorithms(configs)
 }

@@ -1,7 +1,9 @@
 package QAP.Test
 
+import LocalSearch.BaseInterfaces.ISolutionBase
 import LocalSearch.IMove
-import QAP.QAPSolution
+import LocalSearch.RepresentationHelper
+import LocalSearch.Representations.ISolution
 
 class SwapMove(val i: Int, val j: Int) : IMove {
     override fun extractFeature(featureType: String): String {
@@ -18,11 +20,15 @@ class SwapMove(val i: Int, val j: Int) : IMove {
         return setOf("default", "first", "second", "ordered")
     }
 
-    override fun applyToWithDelta(solution: QAPSolution, delta: Int): QAPSolution {
-        val newSolution = solution.solution.copyOf()
-        newSolution[i] = solution.solution[j]
-        newSolution[j] = solution.solution[i]
-        return QAPSolution(solution.instance, newSolution, solution.solutionCost + delta)
+    override fun applyToWithDelta(solution: ISolutionBase, delta: Int): ISolutionBase {
+        val currentArray = RepresentationHelper.getIntArray(solution)
+        val newArray = currentArray.copyOf()
+
+        val temp = newArray[i]
+        newArray[i] = newArray[j]
+        newArray[j] = temp
+
+        return solution.copyWithRaw(newArray, delta)
     }
 
     override fun toString(): String {

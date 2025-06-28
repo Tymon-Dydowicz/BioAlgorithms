@@ -1,5 +1,6 @@
 package QAP
 
+import LocalSearch.Representations.PermutationRepresentation
 import kotlin.math.sqrt
 
 object QAPSolutionManager {
@@ -14,8 +15,9 @@ object QAPSolutionManager {
         return cost
     }
 
-    fun calculateSolutionCost(instance: QAPInstance, solution: IntArray): Int {
+    fun calculateSolutionCost(instance: QAPInstance, representation: PermutationRepresentation): Int {
         var cost = 0
+        val solution = representation.retrieveData()
         for (i in 0 until instance.instanceSize) {
             for (j in 0 until instance.instanceSize) {
                 cost += instance.getFlow(i, j) * instance.getDistance(solution[i], solution[j])
@@ -40,7 +42,8 @@ object QAPSolutionManager {
     }
 
     fun calculatHammingDistance(solution1: QAPSolution, solution2: QAPSolution): Int {
-        return calculateHammingDistance(solution1.solution, solution2.solution)
+        return 1
+//        return calculateHammingDistance(solution1.solution, solution2.solution)
     }
 
     fun calculateHammingDistance(solution1: IntArray, solution2: IntArray): Int {
@@ -54,7 +57,8 @@ object QAPSolutionManager {
     }
 
     fun calculateHammingSimilarity(solution1: QAPSolution, solution2: QAPSolution): Double {
-        return calculateHammingSimilarity(solution1.solution, solution2.solution)
+        return 1.0
+//        return calculateHammingSimilarity(solution1.solution, solution2.solution)
     }
 
     fun calculateHammingSimilarity(solution1: IntArray, solution2: IntArray): Double {
@@ -63,7 +67,8 @@ object QAPSolutionManager {
     }
 
     fun calculateCosineSimilarity(solution1: QAPSolution, solution2: QAPSolution): Double {
-        return calculateCosineSimilarity(solution1.solution, solution2.solution)
+        return 1.0
+//        return calculateCosineSimilarity(solution1.solution, solution2.solution)
     }
 
     fun calculateCosineSimilarity(solution1: IntArray, solution2: IntArray): Double {

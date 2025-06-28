@@ -1,33 +1,36 @@
 package LocalSearch
 
-import QAP.QAPInstance
+import LocalSearch.BaseInterfaces.ISolutionBase
+import LocalSearch.Representations.AbstrPermutationSolution
+import LocalSearch.Representations.ISolution
 import QAP.TabuSearch.ICandidateSelector
-import QAP.Test.SimulatedAnnealingAcceptance
-import QAP.Test.TabuSearchAcceptance
 import Results.OptimizationResult
 import org.slf4j.LoggerFactory
 
 
 abstract class AbstrLocalSearchMetaheuristic(
-    protected val solutionGenerator: ISolutionGenerator,
-    protected val neighborhoodExplorer: AbstrNeighborhoodExplorer,
+    protected val solutionGenerator: ISolutionGenerator<*, *>, //TODO Think about builder pattern for safety
+    protected val neighborhoodExplorer: INeighborhoodExplorer,
     protected val acceptanceCriterion: IAcceptanceCriterion,
     protected val stoppingCriterion: IStoppingCriterion,
     protected val candidateSelector: ICandidateSelector,
     protected val perturbation: IPerturbation,
+    protected val objective: IObjective
 ) {
     private val logger = LoggerFactory.getLogger(AbstrLocalSearchMetaheuristic::class.java)
 
-    fun solve(instance: QAPInstance): OptimizationResult {
-        // TODO Extend it to faciliate all LS variants
-        // TODO Add RestartsStrategy, IntensificationStatrategy, DiversificationStrategy, CandidateSelection and SearchMemory
+    fun solve(instance: IProblemInstance): OptimizationResult {
+        // TODO Extend it to facilitate all LS variants
+        // TODO Add RestartsStrategy, IntensificationStrategy, DiversificationStrategy, CandidateSelection and SearchMemory
         // TODO Fix the steps calculation
         val evaluationsCounter = EvaluationsCounter()
 
         val result = OptimizationResult(getAlgorithmDescription(), instance.instanceSize)
         result.optimum = instance.optimalSolution!!.solutionCost
 
-        var currentSolution = solutionGenerator.generate(instance)
+        @Suppress("UNCHECKED_CAST")
+        val typedGenerator = solutionGenerator as ISolutionGenerator<IProblemInstance, ISolutionBase>
+        var currentSolution = typedGenerator.generateSolution(instance)
         result.initialSolution = currentSolution
 
         val algorithmState = LocalSearchState(instance, currentSolution, currentSolution, currentSolution.solutionCost)
@@ -38,7 +41,7 @@ abstract class AbstrLocalSearchMetaheuristic(
             algorithmState.iteration++
             logger.trace(algorithmState.toString())
 
-            val lazyMoves = neighborhoodExplorer.generateLazyMoves(algorithmState.currentSolution, evaluationsCounter)
+            val lazyMoves = neighborhoodExplorer.generateLazyMoves(algorithmState.currentSolution, objective, evaluationsCounter)
             val candidateMoves = candidateSelector.selectCandidates(lazyMoves, algorithmState)
 
             val selectedMove = acceptanceCriterion.selectNextMove(algorithmState, candidateMoves)
@@ -54,7 +57,7 @@ abstract class AbstrLocalSearchMetaheuristic(
                 // TODO Think about pos/neg steps here?
                 result.totalSteps++
 
-                if (currentSolution.solutionCost < algorithmState.bestSolutionCost) {
+                if (objective.isBetter(algorithmState.bestSolution, currentSolution)) {
                     // TODO Rethink if this is a correct spot
                     result.addStep(currentSolution.solutionCost, System.nanoTime() - algorithmState.startTime)
                     algorithmState.bestSolution = currentSolution
@@ -79,6 +82,8 @@ abstract class AbstrLocalSearchMetaheuristic(
         result.setLastImprovementIn(System.nanoTime() - algorithmState.lastImprovement)
         result.addStep(algorithmState.bestSolutionCost, System.nanoTime() - algorithmState.startTime)
         result.setBestSolutionIn(algorithmState.bestSolution)
+        println("Best solution: ${algorithmState.bestSolution}, cost: ${algorithmState.bestSolutionCost}")
+        algorithmState.bestSolution.describe()
         result.evaluatedSolutions = evaluationsCounter.evaluations
 
         return result

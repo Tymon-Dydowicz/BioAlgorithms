@@ -1,6 +1,7 @@
 package QAP
 
 import LocalSearch.AbstrLocalSearchMetaheuristic
+import LocalSearch.IProblemInstance
 import Results.OptimizationResult
 import java.util.*
 import java.util.concurrent.Executors
@@ -38,7 +39,7 @@ fun runOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean = 
 
     config.executions.add(runner.startTime)
 //    val algorithm = config.localSearchConfig.createAlgorithm()
-    config.instance.describe()
+//    config.instance.describe()
 
     val results = if (config.multiStarts == null) {
         println("Running single optimization with ${config.algorithmRuns} runs...")
@@ -80,7 +81,7 @@ fun runOptimization(config: OptimizationConfig, aggregateMultiStarts: Boolean = 
 
 fun runMultiStartOptimization(
     algorithm: AbstrLocalSearchMetaheuristic,
-    instance: QAPInstance,
+    instance: IProblemInstance,
     starts: Int,
 ): List<OptimizationResult> {
     val executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())

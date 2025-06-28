@@ -1,5 +1,7 @@
 package QAP
 
+import LocalSearch.Representations.PermutationRepresentation
+
 object QAPNeighboorManager {
     enum class SelectionType {
         GREEDY,
@@ -79,10 +81,11 @@ object QAPNeighboorManager {
         val neighboorhood = mutableListOf<Pair<Int, QAPSolution>>()
         for (move in generateMoves(solution)) {
             val delta = calculateDelta(solution, move.first, move.second)
-            val newSolution = solution.solution.copyOf()
-            newSolution[move.first] = solution.solution[move.second]
-            newSolution[move.second] = solution.solution[move.first]
-            val newSolutionInstance = QAPSolution(solution.instance, newSolution)
+            val permutation = solution.representation.retrieveData()
+            val newSolution = permutation.copyOf()
+            newSolution[move.first] = permutation[move.second]
+            newSolution[move.second] = permutation[move.first]
+            val newSolutionInstance = QAPSolution(solution.instance, PermutationRepresentation(newSolution))
             neighboorhood.add(Pair(delta, newSolutionInstance))
         }
 
@@ -105,7 +108,7 @@ object QAPNeighboorManager {
     fun calculateDelta(solution: QAPSolution, i: Int, j: Int): Int {
         val distances = solution.instance.distances
         val flows = solution.instance.flows
-        val permutation = solution.solution
+        val permutation = solution.representation.retrieveData()
 
         var delta = 0
 
