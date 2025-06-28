@@ -3,6 +3,7 @@ package QAP
 import Results.OptimizationResult
 import Enums.AlgorithmType
 import LocalSearch.EvaluationsCounter
+import LocalSearch.Representations.PermutationRepresentation
 import QAP.Test.SwapNeighborhoodExplorer
 import Util.Randomizer
 import java.util.*
@@ -66,7 +67,7 @@ object QAPOptimizer {
         val locations = Array(qap.instanceSize) { it }
         val randomSolution = Randomizer.randomShuffle(locations)
 
-        return QAPSolution(qap, randomSolution.toIntArray(), overridenCost)
+        return QAPSolution(qap, PermutationRepresentation(randomSolution.toIntArray()), overridenCost)
     }
 
     fun generateHeuristicSolution(instance: QAPInstance): QAPSolution {
@@ -84,7 +85,7 @@ object QAPOptimizer {
             locations.remove(nextFacility)
         }
 
-        return QAPSolution(instance, solution.toIntArray())
+        return QAPSolution(instance, PermutationRepresentation(solution.toIntArray()))
     }
 
 //    fun performRandomWalk(instance: QAPInstance, time: Long): OptimizationResult {

@@ -1,5 +1,5 @@
-import LocalSearch.LocalSearchConfig
-import LocalSearch.IStoppingCriterion
+import LocalSearch.*
+import ProblemImplementations.Knapsack.*
 import QAP.*
 import QAP.SA.ICoolingSchedule
 import QAP.SA.IReheatingSchedule
@@ -7,9 +7,9 @@ import QAP.SA.TemperatureWrapper
 import QAP.TabuSearch.*
 import QAP.Test.*
 import Results.*
-import TSP.TSPCostEvaluator
-import TSP.TSPSolution
-import TSP.TSPUtil
+import ProblemImplementations.TSP.TSPCostEvaluator
+import ProblemImplementations.TSP.TSPSolution
+import ProblemImplementations.TSP.TSPUtil
 import Util.*
 
 typealias OptimizationFunction = (QAPInstance, Int, Int) -> OptimizationResult
@@ -71,8 +71,54 @@ fun main(args: Array<String>) {
 //    )
 
 //    runTabuSearch(instance)
-    runTestTSP()
+//    runTestTSP()
+    runTestKnapsack()
 
+}
+
+fun runTestKnapsack() {
+    val instance = KnapsackUtil.generateInstanceWithKnownOptimum(
+        itemCount = 50,
+        name = "TestKnapsackInstance"
+    )
+    instance.describe()
+    val initialTemp = TemperatureWrapper.calculateInitialTemperature(
+        KnapsackTestSolutionGenerator(::KnapsackSolution).generateSolution(instance),
+        FlipNeighborhoodExplorer(KnapsackCostEvaluator())
+    )
+    println("Initial temperature: $initialTemp")
+    val temperatureWrapper = TemperatureWrapper(initialTemp)
+
+    val LSConfig = LocalSearchConfig(
+        KnapsackTestSolutionGenerator(::KnapsackSolution),
+        FlipNeighborhoodExplorer(
+            KnapsackCostEvaluator()
+        ),
+//        GreedyAcceptance(),
+//        SteepestAcceptance(),
+        TabuSearchAcceptance(
+            ITabuList.AttributeBasedTabuList(IMoveFeatureExtractor.Default()),
+            IAspirationCriterion.BestMove(),
+            ITabuTenureSchedule.StaticTenure(instance.instanceSize/16),
+        ),
+//                SimulatedAnnealingAcceptance(
+//            temperatureWrapper,
+//            IReheatingSchedule.PeriodicReheat(1, 0.3),
+//            ICoolingSchedule.Exponential(10, 0.95)
+//        ),
+        IStoppingCriterion.maxRuntimeMs(5000),//*60*15) ,
+        ICandidateSelector.SampledElite(),
+        objective = IObjective.Maximization()
+    )
+
+    val knapsackConfig = OptimizationConfig(
+        instance = instance,
+        localSearchConfig = LSConfig,
+        time = 5000,
+        algorithmRuns = 100,
+    )
+
+    evaluateAlgorithms(listOf(knapsackConfig))
 }
 
 fun runTestTSP() {
@@ -80,14 +126,14 @@ fun runTestTSP() {
     instance.describe()
 
     val initialTemp = TemperatureWrapper.calculateInitialTemperature(
-        RandomSolutionGenerator(::TSPSolution).generateSolution(instance),
+        RandomPermutationSolutionGenerator(::TSPSolution).generateSolution(instance),
         SwapNeighborhoodExplorer(TSPCostEvaluator())
     )
     println("Initial temperature: $initialTemp")
     val temperatureWrapper = TemperatureWrapper(initialTemp)
 
     val LSConfig = LocalSearchConfig(
-        RandomSolutionGenerator(::TSPSolution),
+        RandomPermutationSolutionGenerator(::TSPSolution),
         SwapNeighborhoodExplorer(
             TSPCostEvaluator()
         ),
@@ -122,7 +168,7 @@ fun runTabuSearch(instance: QAPInstance) {
     val P = 10
 
     val tabuConfig = LocalSearchConfig(
-        RandomSolutionGenerator(::QAPSolution),
+        RandomPermutationSolutionGenerator(::QAPSolution),
         SwapNeighborhoodExplorer(QAPCostEvaluator()),
         TabuSearchAcceptance(
             ITabuList.AttributeBasedTabuList(IMoveFeatureExtractor.Default()),
@@ -145,12 +191,13 @@ fun runTabuSearch(instance: QAPInstance) {
 }
 
 fun runSimulateAnnealing(instance: QAPInstance) {
-    val initialTemp = TemperatureWrapper.calculateInitialTemperature(RandomSolutionGenerator(::QAPSolution).generateSolution(instance), SwapNeighborhoodExplorer(QAPCostEvaluator()))
+    val initialTemp = TemperatureWrapper.calculateInitialTemperature(RandomPermutationSolutionGenerator(::QAPSolution).generateSolution(instance), SwapNeighborhoodExplorer(QAPCostEvaluator()))
     println("Initial temperature: $initialTemp")
     val temperatureWrapper = TemperatureWrapper(initialTemp)
 
+
     val SAConfig = LocalSearchConfig(
-        RandomSolutionGenerator(::QAPSolution),
+        RandomPermutationSolutionGenerator(::QAPSolution),
         SwapNeighborhoodExplorer(QAPCostEvaluator()),
         SimulatedAnnealingAcceptance(temperatureWrapper, IReheatingSchedule.PeriodicReheat(20, 0.3), ICoolingSchedule.Exponential(10, 0.95)),
         IStoppingCriterion.temperatureThreshold(100.0) or

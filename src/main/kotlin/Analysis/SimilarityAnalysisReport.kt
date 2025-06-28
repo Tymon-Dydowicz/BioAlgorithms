@@ -1,8 +1,6 @@
 package Analysis
 
-import LocalSearch.ISolution
-import QAP.QAPSolution
-import QAP.QAPSolutionManager
+import LocalSearch.BaseInterfaces.ISolutionBase
 import Results.OptimizationResult
 
 class SimilarityAnalysisReport private constructor(override val instanceName: String): AnalysisReport {
@@ -11,29 +9,29 @@ class SimilarityAnalysisReport private constructor(override val instanceName: St
     val cosineSimilarity: MutableList<Double> = mutableListOf()
     val solutionCosts: MutableList<Int> = mutableListOf()
     val similarityToEachOther: MutableList<Double> = mutableListOf()
-    lateinit var optimalSolution: ISolution
+    lateinit var optimalSolution: ISolutionBase
 
-    constructor(instanceName: String, results: List<OptimizationResult>, optimalSolution: ISolution) : this(instanceName) {
+    constructor(instanceName: String, results: List<OptimizationResult>, optimalSolution: ISolutionBase) : this(instanceName) {
         this.optimalSolution = optimalSolution
         processResults(results)
     }
 
     private fun processResults(results: List<OptimizationResult>) {
-        for (result in results) {
-            hammingDistance.add(QAPSolutionManager.calculatHammingDistance(result.bestSolution!!, optimalSolution))
-            hammingSimilarity.add(QAPSolutionManager.calculateHammingSimilarity(result.bestSolution!!, optimalSolution))
-            cosineSimilarity.add(QAPSolutionManager.calculateCosineSimilarity(result.bestSolution!!, optimalSolution))
-            solutionCosts.add(result.bestSolution!!.solutionCost)
-
-            var similaritySum = 0.0
-            for (subResult in results) {
-                val similarity = QAPSolutionManager.calculateHammingSimilarity(result.bestSolution!!, subResult.bestSolution!!)
-                similaritySum += similarity
-            }
-
-            val averageSimilarity = similaritySum / (results.size - 1)
-            similarityToEachOther.add(averageSimilarity)
-        }
+//        for (result in results) {
+//            hammingDistance.add(QAPSolutionManager.calculatHammingDistance(result.bestSolution!!, optimalSolution))
+//            hammingSimilarity.add(QAPSolutionManager.calculateHammingSimilarity(result.bestSolution!!, optimalSolution))
+//            cosineSimilarity.add(QAPSolutionManager.calculateCosineSimilarity(result.bestSolution!!, optimalSolution))
+//            solutionCosts.add(result.bestSolution!!.solutionCost)
+//
+//            var similaritySum = 0.0
+//            for (subResult in results) {
+//                val similarity = QAPSolutionManager.calculateHammingSimilarity(result.bestSolution!!, subResult.bestSolution!!)
+//                similaritySum += similarity
+//            }
+//
+//            val averageSimilarity = similaritySum / (results.size - 1)
+//            similarityToEachOther.add(averageSimilarity)
+//        }
     }
 
     class SimilarityAnalysisStep(

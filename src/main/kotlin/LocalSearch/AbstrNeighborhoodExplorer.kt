@@ -1,12 +1,15 @@
 package LocalSearch
 
+import LocalSearch.BaseInterfaces.ICostEvaluatorBase
+import LocalSearch.BaseInterfaces.ISolutionBase
 
 abstract class AbstrNeighborhoodExplorer(
-    val costEvaluator: Any
+    val costEvaluator: ICostEvaluator<*, *>
 ): INeighborhoodExplorer {
+    //TODO FIX ERROR CATCHING
 
     final override fun generateLazyMoves(
-        solution: ISolution,
+        solution: ISolutionBase,
         objective: IObjective,
         counter: EvaluationsCounter
     ): List<LazyEvaluatedMove> {
@@ -17,7 +20,7 @@ abstract class AbstrNeighborhoodExplorer(
     }
 
     final override fun generateLazyRandomMove(
-        solution: ISolution,
+        solution: ISolutionBase,
         objective: IObjective,
         counter: EvaluationsCounter
     ): LazyEvaluatedMove {
@@ -30,30 +33,30 @@ abstract class AbstrNeighborhoodExplorer(
 
     @Suppress("UNCHECKED_CAST")
     private fun generateLazy(
-        solution: ISolution,
+        solution: ISolutionBase,
         counter: EvaluationsCounter,
         objective: IObjective?,
         moveGenerator: () -> Any
     ): LazyMoveResult {
         return try {
-            val result = moveGenerator()
-            val typedEvaluator = costEvaluator as ICostEvaluator<ISolution, IMove>
+            val moves = moveGenerator()
+            val typedEvaluator = costEvaluator as ICostEvaluator<ISolutionBase, IMove>
 
-            when (result) {
+            when (moves) {
                 is IMove -> LazyMoveResult.Single(
-                    createObjectiveAwareLazyMove(result, solution, typedEvaluator, counter, objective)
+                    createObjectiveAwareLazyMove(moves, solution, typedEvaluator, counter, objective)
                 )
 
                 is List<*> -> {
-                    val moves = result.map {
+                    val lazyEvaluatedMoves = moves.map {
                         val move = it as IMove
                         createObjectiveAwareLazyMove(move, solution, typedEvaluator, counter, objective)
                     }
-                    LazyMoveResult.Multiple(moves)
+                    LazyMoveResult.Multiple(lazyEvaluatedMoves)
                 }
 
                 else -> throw IllegalArgumentException(
-                    "Unsupported move type: ${result::class.simpleName}"
+                    "Unsupported move type: ${moves::class.simpleName}"
                 )
             }
         } catch (e: ClassCastException) {
@@ -66,8 +69,8 @@ abstract class AbstrNeighborhoodExplorer(
 
     private fun createObjectiveAwareLazyMove(
         move: IMove,
-        solution: ISolution,
-        evaluator: ICostEvaluator<ISolution, IMove>,
+        solution: ISolutionBase,
+        evaluator: ICostEvaluator<ISolutionBase, IMove>,
         counter: EvaluationsCounter,
         objective: IObjective?
     ): LazyEvaluatedMove {

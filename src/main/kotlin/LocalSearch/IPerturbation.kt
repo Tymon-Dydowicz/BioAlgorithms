@@ -1,18 +1,19 @@
 package LocalSearch
 
-import QAP.QAPSolution
+import LocalSearch.BaseInterfaces.ISolutionBase
+import LocalSearch.Representations.ISolution
 
 interface IPerturbation {
-    fun destroy(solution: ISolution): ISolution
-    fun repair(solution: ISolution): ISolution
+    fun destroy(solution: ISolutionBase): ISolutionBase
+    fun repair(solution: ISolutionBase): ISolutionBase
     fun getName(): String
 
     class NoPerturbation: IPerturbation {
-        override fun destroy(solution: ISolution): ISolution {
+        override fun destroy(solution: ISolutionBase): ISolutionBase {
             return solution
         }
 
-        override fun repair(solution: ISolution): ISolution {
+        override fun repair(solution: ISolutionBase): ISolutionBase {
             return solution
         }
 

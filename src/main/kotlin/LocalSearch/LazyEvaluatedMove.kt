@@ -1,6 +1,6 @@
 package LocalSearch
 
-import QAP.QAPSolution
+import LocalSearch.BaseInterfaces.ISolutionBase
 
 
 class LazyEvaluatedMove private constructor(
@@ -37,7 +37,7 @@ class LazyEvaluatedMove private constructor(
         }
     }
 
-    fun applyTo(solution: ISolution): ISolution {
+    fun applyTo(solution: ISolutionBase): ISolutionBase {
         return move.applyToWithDelta(solution, actualDelta)
     }
 

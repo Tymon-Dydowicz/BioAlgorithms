@@ -1,7 +1,7 @@
-package TSP
+package ProblemImplementations.TSP
 
+import LocalSearch.Representations.PermutationRepresentation
 import kotlin.math.*
-import kotlin.random.Random
 
 class TSPUtil {
     companion object {
@@ -24,7 +24,7 @@ class TSPUtil {
             val tspInstance = TSPInstance(cityCount, distances, name)
 
             val optimalTour = (0 until cityCount).toList()
-            val optimalSolution = TSPSolution(tspInstance, optimalTour.toIntArray())
+            val optimalSolution = TSPSolution(tspInstance, PermutationRepresentation(optimalTour.toIntArray()))
 
             tspInstance.optimalSolution = optimalSolution
 

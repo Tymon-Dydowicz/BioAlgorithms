@@ -29,7 +29,7 @@ abstract class AbstrLocalSearchMetaheuristic(
         result.optimum = instance.optimalSolution!!.solutionCost
 
         @Suppress("UNCHECKED_CAST")
-        val typedGenerator = solutionGenerator as ISolutionGenerator<IProblemInstance, ISolution>
+        val typedGenerator = solutionGenerator as ISolutionGenerator<IProblemInstance, ISolutionBase>
         var currentSolution = typedGenerator.generateSolution(instance)
         result.initialSolution = currentSolution
 

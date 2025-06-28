@@ -1,13 +1,5 @@
 package QAP.Test
 
-import LocalSearch.AbstrSolutionGenerator
-import LocalSearch.ISolution
-import LocalSearch.ISolutionGenerator
-import QAP.QAPInstance
-import QAP.QAPSolution
-import QAP.QAPSolutionManager
-import Util.Randomizer
-
 //class HeuristicSolutionGenerator : AbstrSolutionGenerator<QAPInstance>() {
 //    override fun generateSolution(instance: QAPInstance): QAPSolution {
 //        var solution = mutableListOf<Int>()

@@ -1,21 +1,20 @@
-package QAP.Test
+package ProblemImplementations.Knapsack
 
-import LocalSearch.*
-import LocalSearch.BaseInterfaces.ICostEvaluatorBase
+import LocalSearch.AbstrNeighborhoodExplorer
 import LocalSearch.BaseInterfaces.ISolutionBase
+import LocalSearch.ICostEvaluator
+import LocalSearch.IMove
+import QAP.Test.FlipMove
 
-class SwapNeighborhoodExplorer(
+
+class FlipNeighborhoodExplorer(
     costEvaluator: ICostEvaluator<*, *>,
 ): AbstrNeighborhoodExplorer(costEvaluator) {
     // TODO make this depend on representation size
     override fun generateMoves(solution: ISolutionBase): List<IMove> {
-        val moves = mutableListOf<SwapMove>()
+        val moves = mutableListOf<FlipMove>()
         for (i in 0 until solution.instance.instanceSize) {
-            for (j in 0 until solution.instance.instanceSize) {
-                if (i != j) {
-                    moves.add(SwapMove(i, j))
-                }
-            }
+            moves.add(FlipMove(i))
         }
 
         return moves.shuffled()
@@ -24,11 +23,10 @@ class SwapNeighborhoodExplorer(
     // TODO make this depend on representation size
     override fun generateRandomMove(solution: ISolutionBase): IMove {
         val i = (0 until solution.instance.instanceSize).random()
-        val j = (0 until solution.instance.instanceSize).random()
-        return SwapMove(i, j)
+        return FlipMove(i)
     }
 
     override fun getName(): String {
-        return "SwapNH"
+        return "FlipNH"
     }
 }

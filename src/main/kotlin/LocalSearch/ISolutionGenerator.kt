@@ -1,11 +1,11 @@
 package LocalSearch
 
-import QAP.QAPInstance
-import QAP.QAPSolution
+import LocalSearch.BaseInterfaces.ISolutionBase
+import LocalSearch.BaseInterfaces.ISolutionGeneratorBase
+import LocalSearch.Representations.IRepresentation
+import LocalSearch.Representations.ISolution
 
-interface ISolutionGenerator<in ProblemT : IProblemInstance, out SolutionT: ISolution> {
-    fun generateSolution(instance: ProblemT): SolutionT
-    fun generateTest(instance: ProblemT): IntArray
-
-    fun getName(): String
+interface ISolutionGenerator<ProblemT : IProblemInstance, SolutionT : ISolutionBase> : ISolutionGeneratorBase {
+    override fun generateSolution(instance: IProblemInstance): SolutionT
+    fun generateTest(instance: ProblemT): IRepresentation<*>
 }

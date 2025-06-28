@@ -1,6 +1,7 @@
-package TSP
+package ProblemImplementations.TSP
 
 import LocalSearch.AbstrProblemInstance
+import LocalSearch.Representations.AbstrPermutationSolution
 
 class TSPInstance(
     instanceSize: Int,
@@ -20,7 +21,10 @@ class TSPInstance(
             println(distances[i].joinToString(", "))
         }
         if (optimalSolution != null) {
-            println("Optimal solution: ${optimalSolution!!.solution.joinToString(", ")}")
+            if (optimalSolution!! is AbstrPermutationSolution) {
+                val optimalRepresentation = (optimalSolution as AbstrPermutationSolution).representation.retrieveData()
+                println("Optimal solution representation: ${optimalRepresentation.joinToString(", ")}")
+            }
             println("Optimal cost: ${optimalSolution!!.solutionCost}")
         } else {
             println("No optimal solution defined.")

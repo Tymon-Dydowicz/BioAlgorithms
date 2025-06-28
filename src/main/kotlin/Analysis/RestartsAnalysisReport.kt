@@ -13,17 +13,17 @@ class RestartsAnalysisReport private constructor(override val instanceName: Stri
     }
 
     private fun processResults(results: List<OptimizationResult>) {
-        for (i in results.indices) {
-            val windowSize = i + 1
-            restarts.add(windowSize)
-
-            val windowResults = results.take(windowSize)
-            val avgCost = windowResults.map { it.bestSolution!!.solutionCost }.average()
-            avgBestCost.add(avgCost)
-
-            val minCost = windowResults.minOfOrNull { it.bestSolution!!.solutionCost } ?: 0
-            bestCost.add(minCost)
-        }
+//        for (i in results.indices) {
+//            val windowSize = i + 1
+//            restarts.add(windowSize)
+//
+//            val windowResults = results.take(windowSize)
+//            val avgCost = windowResults.map { it.bestSolution!!.solutionCost }.average()
+//            avgBestCost.add(avgCost)
+//
+//            val minCost = windowResults.minOfOrNull { it.bestSolution!!.solutionCost } ?: 0
+//            bestCost.add(minCost)
+//        }
     }
 
     override fun exportToCSV(filePath: String) {

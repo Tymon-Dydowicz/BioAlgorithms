@@ -1,9 +1,11 @@
 package LocalSearch
 
+import LocalSearch.BaseInterfaces.ISolutionBase
+
 abstract class AbstrProblemInstance(
     override val instanceSize: Int,
     instanceName: String?,
-    override var optimalSolution: ISolution? = null // Think about how to change this to immutable
+    override var optimalSolution: ISolutionBase? = null // Think about how to change this to immutable
 ) : IProblemInstance {
     override val instanceName: String = instanceName ?: "Unknown Instance"
 

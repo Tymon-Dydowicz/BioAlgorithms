@@ -1,12 +1,12 @@
 package LocalSearch
 
-import QAP.QAPInstance
-import QAP.QAPSolution
+import LocalSearch.BaseInterfaces.ISolutionBase
+import LocalSearch.Representations.ISolution
 
 data class LocalSearchState(
     val instance: IProblemInstance,
-    var currentSolution: ISolution,
-    var bestSolution: ISolution,
+    var currentSolution: ISolutionBase,
+    var bestSolution: ISolutionBase,
     var bestSolutionCost: Int,
     var iteration: Int = 0,
     val startTime: Long = System.nanoTime(),

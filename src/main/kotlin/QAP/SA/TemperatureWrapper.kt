@@ -1,6 +1,7 @@
 package QAP.SA
 
 import LocalSearch.*
+import LocalSearch.BaseInterfaces.ISolutionBase
 import LocalSearch.Representations.ISolution
 
 class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable {
@@ -26,7 +27,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
 
     companion object {
         fun calculateInitialTemperature(
-            solution: ISolution,
+            solution: ISolutionBase,
             explorer: INeighborhoodExplorer,
             initialAcceptanceRatio: Double = 0.9,
             sampleSize: Int = 100
@@ -40,7 +41,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
         }
 
         fun calculateFreezingTemperature(
-            solution: ISolution,
+            solution: ISolutionBase,
             explorer: INeighborhoodExplorer,
             epsilon: Double = 1e-3,
             sampleSize: Int = 100
@@ -54,7 +55,7 @@ class TemperatureWrapper(val initialTemperature: Double) : Stateful, Resettable 
         }
 
         private fun calculateTemperatureForAcceptanceProbability(
-            solution: ISolution,
+            solution: ISolutionBase,
             explorer: INeighborhoodExplorer,
             targetAcceptanceProbability: Double,
             sampleSize: Int

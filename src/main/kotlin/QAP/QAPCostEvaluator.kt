@@ -1,8 +1,6 @@
 package QAP
 
 import LocalSearch.ICostEvaluator
-import LocalSearch.IMove
-import LocalSearch.ISolution
 import QAP.Test.SwapMove
 
 class QAPCostEvaluator : ICostEvaluator<QAPSolution, SwapMove> {
@@ -12,7 +10,7 @@ class QAPCostEvaluator : ICostEvaluator<QAPSolution, SwapMove> {
 
         val distances = solution.instance.distances
         val flows = solution.instance.flows
-        val permutation = solution.solution
+        val permutation = solution.representation.retrieveData()
 
         var delta = 0
 
